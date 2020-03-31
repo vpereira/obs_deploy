@@ -2,6 +2,7 @@
 
 require 'open-uri'
 require 'net/http'
+require 'cheetah'
 require 'nokogiri'
 require 'obs_deploy/version'
 require 'obs_deploy/check_diff'
@@ -11,12 +12,35 @@ module ObsDeploy
   class Systemctl
     class << self
       def status
-        system('systemctl status obs-api-support.target')
+        'systemctl status obs-api-support.target'
       end
 
       def list_dependencies
-        system('systemctl list-dependencies obs-api-support.target')
+        'systemctl list-dependencies obs-api-support.target'
       end
+    end
+  end
+
+  class SSH
+    attr_reader :user, :server, :port, :identity_file
+
+    def initialize(opts = {})
+      @user = opts[:user] || 'root'
+      @server = opts[:server] || 'localhost'
+      @port = opts[:port] || 22
+      @identity_file = opts[:identity_file] 
+    end
+
+    def build_command
+      command_line = ['-tt', "#{@user}@#{@server}", "-p", @port.to_s]
+      command_line << ["-i", @identity_file] if @identity_file
+      ["ssh"] + command_line.flatten
+    end
+
+    def run(cmd)
+      results, errors = Cheetah.run(build_command + cmd, stdout: :capture, stderr: :capture)
+      puts results
+      puts errors
     end
   end
 
@@ -36,7 +60,7 @@ module ObsDeploy
     private
 
     def run(params)
-      # ...
+      params
     end
 
     def package_name
