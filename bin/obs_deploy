@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'obs_deploy'
+require 'dry/cli'
+
+
+
+module ObsDeploy
+    module CLI
+        module Commands
+            extend Dry::CLI::Registry
+
+            class Version < Dry::CLI::Command
+                desc "Print version"
+                def call(*)
+                    puts ObsDeploy::VERSION
+                end
+            end
+
+            class RefreshRepositories < Dry::CLI::Command
+                desc "Refresh zypper repositories"
+                option :user, type: :string, default: 'root', desc: 'User' 
+                option :dry_run, type: :bool, default: true, desc: 'Dry run'
+                option :host, type: :string, default: 'localhost', desc: 'Set the server address'
+                option :port, type: :int, default: 22, desc: 'Set the server port'
+
+                def call(user:, dry_run:, host:, port:,**)
+                    o = ObsDeploy::SSH.new(user: user, server: host, port: port)
+                    z = ObsDeploy::Zypper.new
+                    o.run(z.refresh)
+                end
+            end
+
+            class Deploy < Dry::CLI::Command
+                desc "Deploy obs-api"
+
+                option :user, type: :string, default: 'root', desc: 'User' 
+                option :dry_run, type: :bool, default: true, desc: 'Dry run'
+                option :host, type: :string, default: 'localhost', desc: 'Set the server address'
+                option :port, type: :int, default: 22, desc: 'Set the server port'
+
+                def call(user:, dry_run:, host:, port:,**)
+                    o = ObsDeploy::SSH.new(user: user, server: host, port: port)
+                    z = ObsDeploy::Zypper.new
+ 
+                    # o.run(z.refresh)
+                    o.run(z.update(dry_run: dry_run))
+                end
+            end
+            register "version", Version, aliases: ["v", "-v", "--version"]
+            register "deploy", Deploy
+            register "refresh-repositories", RefreshRepositories
+        end
+    end
+end
+
+Dry::CLI.new(ObsDeploy::CLI::Commands).call
