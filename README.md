@@ -27,9 +27,11 @@ gem 'obs_deploy'
 `obs_deploy available-package [<product>] [<package-name>]`
 
 ### Deploy dry-run
+
 `obs_deploy deploy --user root --host localhost --dry-run`
 
 ### Refresh Zypper repositories
+
 `obs_deploy refresh-repositories`
 
 ## Development
