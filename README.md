@@ -12,20 +12,25 @@ gem 'obs_deploy'
 
 ## Usage
 
-To be able to use it you will need an env file like:
 
-```
-ssh_server: xxx
-user: xxx
-product_version: yyyy
-```
 
-give this env file as parameter to `obs_deploy` and you are good to go:
+### To deploy
 
-`obs_deploy deploy -f env_file`
-`obs_deploy running`
-`obs_deploy available -f env_file`
-`obs_deploy deploy -f env_file --dry-run`
+`obs_deploy deploy --user root --host localhost`
+
+### To check which version is deployed
+
+`obs_deploy deployed-version [--host <server>]`
+
+### To check which package is available to install
+
+`obs_deploy available-package [<product>] [<package-name>]`
+
+### Deploy dry-run
+`obs_deploy deploy --user root --host localhost --dry-run`
+
+### Refresh Zypper repositories
+`obs_deploy refresh-repositories`
 
 ## Development
 

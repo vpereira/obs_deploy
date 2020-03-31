@@ -70,8 +70,8 @@ module ObsDeploy
                 end
             end
 
-            register 'available', GetPackageVersion
-            register 'running', GetDeployedVersion
+            register 'available-package', GetPackageVersion
+            register 'deployed-version', GetDeployedVersion
             register "version", Version, aliases: ["v", "-v", "--version"]
             register "deploy", Deploy
             register "refresh-repositories", RefreshRepositories
