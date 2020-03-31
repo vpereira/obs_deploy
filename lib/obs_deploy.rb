@@ -32,11 +32,9 @@ module ObsDeploy
       Net::HTTP.get(URI("https://github.com/openSUSE/open-build-service/compare/#{obs_running_commit}...#{package_commit}.diff"))
     end
 
-    def migration?
+    def has_migration?
       !!github_diff.match(%r{db/migrate})
     end
-
-    private
 
     def package_url
       URI("#{@server}/public/build/OBS:Server:Unstable/#{@product}/x86_64/obs-server")

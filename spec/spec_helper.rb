@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
+require 'webmock/rspec'
 require 'obs_deploy'
 
 RSpec.configure do |config|
@@ -14,3 +15,5 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+WebMock.disable_net_connect!

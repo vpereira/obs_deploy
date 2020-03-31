@@ -1,0 +1,159 @@
+HTTP/1.1 200 OK
+date: Tue, 31 Mar 2020 08:43:24 GMT
+content-type: text/plain; charset=utf-8
+server: GitHub.com
+status: 200 OK
+vary: X-PJAX, Accept-Encoding, Accept, X-Requested-With
+etag: W/"bedaf77f08247ca8948fdd823b880656"
+cache-control: max-age=0, private, must-revalidate
+strict-transport-security: max-age=31536000; includeSubdomains; preload
+x-frame-options: deny
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+expect-ct: max-age=2592000, report-uri="https://api.github.com/_private/browser/errors"
+content-security-policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; connect-src 'self' uploads.github.com www.githubstatus.com collector.githubapp.com api.github.com www.google-analytics.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com wss://live.github.com; font-src github.githubassets.com; form-action 'self' github.com gist.github.com; frame-ancestors 'none'; frame-src render.githubusercontent.com; img-src 'self' data: github.githubassets.com identicons.github.com collector.githubapp.com github-cloud.s3.amazonaws.com *.githubusercontent.com; manifest-src 'self'; media-src 'none'; script-src github.githubassets.com; style-src 'unsafe-inline' github.githubassets.com
+Set-Cookie: _gh_sess=BCsmLKS82eE9ASfRj1jV7BMuyjEefeKvsmZc8WePpm3ySFCp9vdSdddWYgABocC0IuLQiCWwQtvovvu8Uz9mJixFTuQJ1KN1iuNSAKoykp8WPHCBuTSKvcOuA%2Frg9umMl7xQeD76L64yJZqr%2FCerIA9iZE5i5xn%2F8G%2F470ctv8Xpp47bNvlAuWN%2BhWJs6GK36vE6aP%2FlaAn9jie0QWQt%2F3%2Fuqsy0t4%2BzwCaMRJr2bQdAAsMLDwMoheC9OUNouFLgt4Sxi8Wj7qHaojAzFUiGJA%3D%3D--mujgaS2oRnFIXSpa--4iwWghN%2FoY4cpDdNJMBKHA%3D%3D; Path=/; HttpOnly; Secure
+Set-Cookie: _octo=GH1.1.2054746496.1585644204; Path=/; Domain=github.com; Expires=Wed, 31 Mar 2021 08:43:24 GMT; Secure
+Set-Cookie: logged_in=no; Path=/; Domain=github.com; Expires=Wed, 31 Mar 2021 08:43:24 GMT; HttpOnly; Secure
+Accept-Ranges: bytes
+Content-Length: 4325
+X-GitHub-Request-Id: EB32:197CD:55E2F:77B10:5E8302AC
+
+diff --git a/.rubocop.yml b/.rubocop.yml
+index 6a3aa1d4d3d..8d80d177387 100644
+--- a/.rubocop.yml
++++ b/.rubocop.yml
+@@ -14,7 +14,7 @@ AllCops:
+     - 'src/backend/**/*'
+     # These files are RPM spec files
+     - 'dist/*.spec'
+-    - 'dist/t/spec/fixtures/ctris.spec'
++    - 'dist/t/spec/fixtures/hello_world.spec'
+ 
+ #################### Layout ###########################
+ 
+diff --git a/dist/t/spec/features/0040_package_spec.rb b/dist/t/spec/features/0040_package_spec.rb
+index 91bb7feceec..8def1306431 100644
+--- a/dist/t/spec/features/0040_package_spec.rb
++++ b/dist/t/spec/features/0040_package_spec.rb
+@@ -14,28 +14,22 @@
+       click_link('Home Project')
+     end
+     click_link('Create Package')
+-    fill_in 'name', with: 'ctris'
+-    fill_in 'title', with: 'ctris'
+-    fill_in 'description', with: 'ctris'
++    fill_in 'name', with: 'hello_world'
++    fill_in 'title', with: 'hello_world'
++    fill_in 'description', with: 'hello_world'
+     click_button('Create')
+-    expect(page).to have_content("Package 'ctris' was created successfully")
++    expect(page).to have_content("Package 'hello_world' was created successfully")
+   end
+ 
+   it "should be able to upload files" do
+     within("div#personal-navigation") do
+       click_link('Home Project')
+     end
+-    click_link('ctris')
++    click_link('hello_world')
+     click_link('Add file')
+-    attach_file("file", File.expand_path('../fixtures/ctris.spec', __dir__), make_visible: true)
++    attach_file("file", File.expand_path('../fixtures/hello_world.spec', __dir__), make_visible: true)
+     click_button('Save')
+-    expect(page).to have_content("The file 'ctris.spec' has been successfully saved.")
+-
+-    # second line of defense ;-)
+-    click_link('Add file')
+-    attach_file("file", File.expand_path('../fixtures/ctris-0.42.tar.bz2', __dir__), make_visible: true)
+-    click_button('Save')
+-    expect(page).to have_content("The file 'ctris-0.42.tar.bz2' has been successfully saved.")
++    expect(page).to have_content("The file 'hello_word.sppec' has been successfully saved.")
+   end
+ 
+   it "should be able to branch" do
+@@ -65,7 +59,7 @@
+ 
+   it "should be able to successfully build" do
+     100.downto(1) do |counter|
+-      visit("/package/show/home:Admin/ctris")
++      visit("/package/show/home:Admin/hello_world")
+       # wait for the build results ajax call
+       sleep(5)
+       puts "Refreshed build results, #{counter} retries left."
+diff --git a/dist/t/spec/fixtures/ctris-0.42.tar.bz2 b/dist/t/spec/fixtures/ctris-0.42.tar.bz2
+deleted file mode 100644
+index 57d2cfa95ec..00000000000
+Binary files a/dist/t/spec/fixtures/ctris-0.42.tar.bz2 and /dev/null differ
+diff --git a/dist/t/spec/fixtures/ctris.spec b/dist/t/spec/fixtures/ctris.spec
+deleted file mode 100644
+index a36c565a881..00000000000
+--- a/dist/t/spec/fixtures/ctris.spec
++++ /dev/null
+@@ -1,32 +0,0 @@
+-Name:         	ctris
+-Summary:      	Console based tetris clone
+-URL:          	http://www.hackl.dhs.org/ctris/ 
+-Group:        	Amusements/Games/Action/Arcade
+-License:      	GPL
+-Version:      	0.42
+-Release:      	1
+-Source0:       	%{name}-%{version}.tar.bz2
+-BuildRequires: 	ncurses-devel
+-BuildRoot:    	%{_tmppath}/%{name}-%{version}-build
+-
+-%description
+-ctris is a colorized, small and flexible Tetris(TM)-clone for the console. Go play!
+-
+-%prep
+-%setup -q
+-
+-%build
+-make CFLAGS="$RPM_OPT_FLAGS"
+-
+-%install
+-make install DESTDIR=$RPM_BUILD_ROOT
+-
+-%clean
+-rm -rf $RPM_BUILD_ROOT;
+-
+-%files
+-%defattr (-,root,root)
+-%doc AUTHORS COPYING README TODO
+-%doc %{_mandir}/man6/ctris.6.gz
+-/usr/games
+-/usr/games/ctris
+diff --git a/dist/t/spec/fixtures/hello_world.spec b/dist/t/spec/fixtures/hello_world.spec
+new file mode 100644
+index 00000000000..b13951f4ed8
+--- /dev/null
++++ b/dist/t/spec/fixtures/hello_world.spec
+@@ -0,0 +1,27 @@
++Name:       hello_world
++Version:    1
++Release:    1
++Summary:    Most simple RPM package
++License:    FIXME
++
++%description
++This is my first RPM package, which does nothing.
++
++%prep
++# we have no source, so nothing here
++
++%build
++cat > hello_world.sh <<EOF
++#!/usr/bin/bash
++echo Hello world
++EOF
++
++%install
++mkdir -p %{buildroot}/usr/bin/
++install -m 755 hello_world.sh %{buildroot}/usr/bin/hello_world.sh
++
++%files
++/usr/bin/hello_world.sh
++
++%changelog
++# let skip this for now
+\ No newline at end of file
