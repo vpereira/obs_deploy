@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 module ObsDeploy
-    module CLI
-        module Commands
-            class Version < Dry::CLI::Command
-                desc 'Print version'
-                def call(*)
-                    puts ObsDeploy::VERSION
-                end
-            end
+  module CLI
+    module Commands
+      class Version < Dry::CLI::Command
+        desc 'Print version'
+        def call(*)
+          puts ObsDeploy::VERSION
         end
+      end
     end
+  end
 end
