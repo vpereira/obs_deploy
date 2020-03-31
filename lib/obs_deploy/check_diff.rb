@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+require 'pry'
 module ObsDeploy
   class CheckDiff
     def initialize(server: 'https://api.opensuse.org', product: 'SLE_12_SP4')
@@ -8,7 +8,7 @@ module ObsDeploy
     end
 
     def package_version
-      doc = Nokogiri::XML(open(package_url))
+      doc = Nokogiri::XML(Net::HTTP.get(package_url))
       doc.xpath("//binary[starts-with(@filename, 'obs-api')]/@filename").to_s
     end
 
@@ -17,7 +17,7 @@ module ObsDeploy
     end
 
     def obs_running_commit
-      doc = Nokogiri::XML(about_url)
+      doc = Nokogiri::XML(Net::HTTP.get(about_url))
       doc.xpath('//commit/text()').to_s
     end
 
