@@ -1,0 +1,22 @@
+version: 2.1
+orbs:
+  ruby: circleci/ruby@0.1.2 
+
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:2.6.3-stretch-node
+        environment:
+          BUNDLE_VERSION=2.1.4
+    executor: ruby/default
+    steps:
+      - checkout
+      - run:
+          name: Install Bundler
+          command: gem install bundler:2.1.4
+      - run:
+          name: Bundle install
+          command: bundle install
+      - run:
+          name: Run spec
+          command: bundle exec rake spec
