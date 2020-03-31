@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ObsDeploy
   class SSH
     attr_reader :user, :server, :port, :identity_file
@@ -6,13 +8,13 @@ module ObsDeploy
       @user = opts[:user] || 'root'
       @server = opts[:server] || 'localhost'
       @port = opts[:port] || 22
-      @identity_file = opts[:identity_file] 
+      @identity_file = opts[:identity_file]
     end
 
     def build_command
-      command_line = ['-tt', "#{@user}@#{@server}", "-p", @port.to_s]
-      command_line << ["-i", @identity_file] if @identity_file
-      ["ssh"] + command_line.flatten
+      command_line = ['-tt', "#{@user}@#{@server}", '-p', @port.to_s]
+      command_line << ['-i', @identity_file] if @identity_file
+      ['ssh'] + command_line.flatten
     end
 
     def run(cmd)

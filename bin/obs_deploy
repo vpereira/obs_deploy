@@ -4,79 +4,77 @@
 require 'obs_deploy'
 require 'dry/cli'
 
-
-
 module ObsDeploy
-    module CLI
-        module Commands
-            extend Dry::CLI::Registry
+  module CLI
+    module Commands
+      extend Dry::CLI::Registry
 
-            class Version < Dry::CLI::Command
-                desc "Print version"
-                def call(*)
-                    puts ObsDeploy::VERSION
-                end
-            end
-
-            class RefreshRepositories < Dry::CLI::Command
-                desc "Refresh zypper repositories"
-                option :user, type: :string, default: 'root', desc: 'User' 
-                option :dry_run, type: :bool, default: true, desc: 'Dry run'
-                option :host, type: :string, default: 'localhost', desc: 'Set the server address'
-                option :port, type: :int, default: 22, desc: 'Set the server port'
-
-                def call(user:, dry_run:, host:, port:,**)
-                    o = ObsDeploy::SSH.new(user: user, server: host, port: port)
-                    z = ObsDeploy::Zypper.new
-                    o.run(z.refresh)
-                end
-            end
-
-            class Deploy < Dry::CLI::Command
-                desc "Deploy obs-api"
-
-                option :user, type: :string, default: 'root', desc: 'User' 
-                option :dry_run, type: :bool, default: true, desc: 'Dry run'
-                option :host, type: :string, default: 'localhost', desc: 'Set the server address'
-                option :port, type: :int, default: 22, desc: 'Set the server port'
-
-                def call(user:, dry_run:, host:, port:,**)
-                    o = ObsDeploy::SSH.new(user: user, server: host, port: port)
-                    z = ObsDeploy::Zypper.new
- 
-                    # o.run(z.refresh)
-                    o.run(z.update(dry_run: dry_run))
-                end
-            end
-
-            class GetPackageVersion < Dry::CLI::Command
-                desc "Get the available package version"
-                option :host, type: :string, default: 'https://api.opensuse.org', desc: 'API server'
-                option :package, type: :string, default: 'obs-api', desc: 'Package name'
-                option :product, type: :string, default: 'SLE_12_SP4', desc: 'Product name'
-                option :architecture, type: :string, default: 'x86_64', desc: 'Architecture'
-
-                def call(host:, product:, **)
-                    puts "Available package: #{ObsDeploy::CheckDiff.new(server: host, product: product).package_version}"
-                end
-            end
-
-            class GetDeployedVersion < Dry::CLI::Command
-                desc "Get the deployed version of OBS"
-                option :host, type: :string, default: 'https://api.opensuse.org', desc: 'API server'
-
-                def call(host:,**)
-                    puts "Deployed version: #{ObsDeploy::CheckDiff.new(server: host).obs_running_commit}"
-                end
-            end
-
-            register 'available-package', GetPackageVersion
-            register 'deployed-version', GetDeployedVersion
-            register "version", Version, aliases: ["v", "-v", "--version"]
-            register "deploy", Deploy
-            register "refresh-repositories", RefreshRepositories
+      class Version < Dry::CLI::Command
+        desc 'Print version'
+        def call(*)
+          puts ObsDeploy::VERSION
         end
+      end
+
+      class RefreshRepositories < Dry::CLI::Command
+        desc 'Refresh zypper repositories'
+        option :user, type: :string, default: 'root', desc: 'User'
+        option :dry_run, type: :bool, default: true, desc: 'Dry run'
+        option :host, type: :string, default: 'localhost', desc: 'Set the server address'
+        option :port, type: :int, default: 22, desc: 'Set the server port'
+
+        def call(user:, dry_run:, host:, port:, **)
+          o = ObsDeploy::SSH.new(user: user, server: host, port: port)
+          z = ObsDeploy::Zypper.new
+          o.run(z.refresh)
+        end
+      end
+
+      class Deploy < Dry::CLI::Command
+        desc 'Deploy obs-api'
+
+        option :user, type: :string, default: 'root', desc: 'User'
+        option :dry_run, type: :bool, default: true, desc: 'Dry run'
+        option :host, type: :string, default: 'localhost', desc: 'Set the server address'
+        option :port, type: :int, default: 22, desc: 'Set the server port'
+
+        def call(user:, dry_run:, host:, port:, **)
+          o = ObsDeploy::SSH.new(user: user, server: host, port: port)
+          z = ObsDeploy::Zypper.new
+
+          # o.run(z.refresh)
+          o.run(z.update(dry_run: dry_run))
+        end
+      end
+
+      class GetPackageVersion < Dry::CLI::Command
+        desc 'Get the available package version'
+        option :host, type: :string, default: 'https://api.opensuse.org', desc: 'API server'
+        option :package, type: :string, default: 'obs-api', desc: 'Package name'
+        option :product, type: :string, default: 'SLE_12_SP4', desc: 'Product name'
+        option :architecture, type: :string, default: 'x86_64', desc: 'Architecture'
+
+        def call(host:, product:, **)
+          puts "Available package: #{ObsDeploy::CheckDiff.new(server: host, product: product).package_version}"
+        end
+      end
+
+      class GetDeployedVersion < Dry::CLI::Command
+        desc 'Get the deployed version of OBS'
+        option :host, type: :string, default: 'https://api.opensuse.org', desc: 'API server'
+
+        def call(host:, **)
+          puts "Deployed version: #{ObsDeploy::CheckDiff.new(server: host).obs_running_commit}"
+        end
+      end
+
+      register 'available-package', GetPackageVersion
+      register 'deployed-version', GetDeployedVersion
+      register 'version', Version, aliases: ['v', '-v', '--version']
+      register 'deploy', Deploy
+      register 'refresh-repositories', RefreshRepositories
     end
+  end
 end
 
 Dry::CLI.new(ObsDeploy::CLI::Commands).call
