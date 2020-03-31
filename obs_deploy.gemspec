@@ -32,7 +32,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop'
   spec.add_development_dependency 'webmock'
+  spec.add_development_dependency 'pry'
   spec.add_dependency 'cheetah'
   spec.add_dependency 'net-ssh'
   spec.add_dependency 'nokogiri'
+  spec.add_dependency 'dry-cli'
 end
