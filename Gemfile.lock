@@ -4,7 +4,6 @@ PATH
     obs_deploy (0.1.0)
       cheetah
       dry-cli
-      net-ssh
       nokogiri
 
 GEM
@@ -27,7 +26,6 @@ GEM
     jaro_winkler (1.5.4)
     method_source (1.0.0)
     mini_portile2 (2.4.0)
-    net-ssh (5.2.0)
     nokogiri (1.10.9)
       mini_portile2 (~> 2.4.0)
     parallel (1.19.1)

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry'
 module ObsDeploy
   class CheckDiff
     def initialize(server: 'https://api.opensuse.org', product: 'SLE_12_SP4')
