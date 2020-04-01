@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'OBS Deployment tool'
   spec.homepage      = 'https://openbuildservice.org'
 
-  spec.metadata['allowed_push_host'] = "https://rubygems.org"
+  spec.metadata['allowed_push_host'] = 'https://rubygems.org'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = 'https://github.com/vpereira/obs_deploy.git'
