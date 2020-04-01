@@ -5,39 +5,4 @@ require 'obs_deploy'
 require 'dry/cli'
 require 'obs_deploy/cli/commands'
 
-module ObsDeploy
-  module CLI
-    module Commands
-      extend Dry::CLI::Registry
-
-      class GetPackageVersion < Dry::CLI::Command
-        desc 'Get the available package version'
-        option :host, type: :string, default: 'https://api.opensuse.org', desc: 'API server'
-        option :package, type: :string, default: 'obs-api', desc: 'Package name'
-        option :product, type: :string, default: 'SLE_12_SP4', desc: 'Product name'
-        option :architecture, type: :string, default: 'x86_64', desc: 'Architecture'
-
-        def call(host:, product:, **)
-          puts "Available package: #{ObsDeploy::CheckDiff.new(server: host, product: product).package_version}"
-        end
-      end
-
-      class GetDeployedVersion < Dry::CLI::Command
-        desc 'Get the deployed version of OBS'
-        option :host, type: :string, default: 'https://api.opensuse.org', desc: 'API server'
-
-        def call(host:, **)
-          puts "Deployed version: #{ObsDeploy::CheckDiff.new(server: host).obs_running_commit}"
-        end
-      end
-
-      register 'available-package', GetPackageVersion
-      register 'deployed-version', GetDeployedVersion
-      register 'version', Version, aliases: ['v', '-v', '--version']
-      register 'deploy', Deploy
-      register 'refresh-repositories', RefreshRepositories
-    end
-  end
-end
-
 Dry::CLI.new(ObsDeploy::CLI::Commands).call
