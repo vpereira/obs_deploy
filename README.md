@@ -40,6 +40,13 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+
+## Hacking
+
+If you want to add new command to the cli, please read the `dry-cli` documentation https://dry-rb.org/gems/dry-cli/0.4/. The commands are in the `obs_deploy/cli/commands` directory.
+
+The commands are being sent via ssh and ssh is being called via `cheetah` https://github.com/openSUSE/cheetah. Please Read the `ssh.rb` file, specially the `SSH#run` method
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/vpereira/obs_deploy.
