@@ -46,6 +46,30 @@ On the checked out source, run the following:
 
 `ruby -Ilib bin/obs_deploy -v`
 
+if you want to run it against the OBS appliance running on VirtualBox:
+
+- Make sure that you can ssh without password into your VM
+- Make sure the appliance is running in __bridge__ mode
+- build the docker image as:
+  
+  ```
+  docker build -t $USER/obs_deploy .
+  ```
+
+- then run the container as:
+
+    ```
+    docker run --rm -it -v "$HOME/.ssh:/tmp/.ssh:ro" $USER/obs_deploy bash
+    ```
+Now you are inside the container and should be able to ping the obs appliance.
+
+From there:
+
+```
+$ obs_deploy refresh-repositories --host=$APPLIANCE_IP
+```
+
+
 ## Hacking
 
 If you want to add new command to the cli, please read the `dry-cli` documentation https://dry-rb.org/gems/dry-cli/0.4/. The commands are in the `obs_deploy/cli/commands` directory.
