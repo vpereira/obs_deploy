@@ -6,8 +6,15 @@ Simple tool to deploy OBS via zypper to our reference server
 
 Just run:
 
-```ruby
-gem 'obs_deploy'
+```
+gem install obs_deploy
+```
+
+or
+
+```
+zypper ar https://download.opensuse.org/repositories/home:/vpereirabr/openSUSE_Tumbleweed/home:vpereirabr.repo
+zypper in  ruby2.6-rubygem-obs_deploy
 ```
 
 ## Usage
