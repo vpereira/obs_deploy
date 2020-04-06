@@ -18,6 +18,7 @@
 
 %define mod_name obs_deploy
 %define mod_full_name %{mod_name}-%{version}
+%define rb_suffix         ruby2.6
 Name:           rubygem-obs_deploy
 Version:        0.1.5
 Release:        0
@@ -29,9 +30,10 @@ Source:         https://rubygems.org/gems/%{mod_full_name}.gem
 BuildRequires:  %{rubygem gem2rpm}
 BuildRequires:  %{ruby}
 BuildRequires:  ruby-macros >= 5
-BuildRequires:  update-alternatives
+BuildRequires:  ruby-common-rails
 # FIXME: use proper Requires(pre/post/preun/...)
 PreReq:         update-alternatives
+
 
 %description
 OBS Deployment tool.
@@ -41,6 +43,7 @@ OBS Deployment tool.
 %build
 
 %install
+%rails_fix_ruby_shebang bin/
 %gem_install \
   --symlink-binaries \
   --doc-files="README.md" \
