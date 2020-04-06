@@ -9,6 +9,7 @@ module ObsDeploy
       autoload :Deploy, File.join(__dir__, 'commands/deploy.rb')
       autoload :GetPackageVersion,  File.join(__dir__, 'commands/get_package_version.rb')
       autoload :GetDeployedVersion, File.join(__dir__, 'commands/get_deployed_version.rb')
+      autoload :Systemctl, File.join(__dir__, 'commands/systemctl.rb')
 
       # register the commands and its command line
       register 'available-package', GetPackageVersion
@@ -16,6 +17,7 @@ module ObsDeploy
       register 'version', Version, aliases: ['v', '-v', '--version']
       register 'deploy', Deploy
       register 'refresh-repositories', RefreshRepositories
+      register 'systemctl', Systemctl
     end
   end
 end
