@@ -9,6 +9,7 @@ module ObsDeploy
       @server = opts[:server] || 'localhost'
       @port = opts[:port] || 22
       @identity_file = opts[:identity_file]
+      @debug = opts[:debug] || false
     end
 
     def build_command
@@ -18,9 +19,15 @@ module ObsDeploy
     end
 
     def run(cmd)
-      results, errors = Cheetah.run(build_command + cmd, stdout: :capture, stderr: :capture)
-      puts results
-      puts errors
+      Cheetah.run(build_command + cmd, logger: logger)
+    end
+
+    def logger
+      Logger.new(STDOUT, level: logger_level)
+    end
+
+    def logger_level
+      @debug ? Logger::DEBUG : Logger::INFO
     end
   end
 end
