@@ -9,11 +9,7 @@ module ObsDeploy
     end
 
     def update
-      if @dry_run
-        run ['zypper'] + update_params + dry_run_params + package_name
-      else
-        run ['zypper'] + update_params + package_name
-      end
+      run ['zypper'] + update_string + package_name
     end
 
     def refresh
@@ -24,6 +20,14 @@ module ObsDeploy
 
     def run(params)
       params
+    end
+
+    def update_string
+      if @dry_run
+        update_params + dry_run_params
+      else
+        update_params
+      end
     end
 
     def package_name
