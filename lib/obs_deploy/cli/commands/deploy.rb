@@ -7,7 +7,7 @@ module ObsDeploy
         desc 'Deploy obs-api'
 
         option :user, type: :string, default: 'root', desc: 'User'
-        option :dry_run, type: :bool, default: true, desc: 'Dry run'
+        option :dry_run, type: :boolean, default: true, desc: 'Dry run'
         option :host, type: :string, default: 'localhost', desc: 'Set the server address'
         option :port, type: :int, default: 22, desc: 'Set the server port'
 
