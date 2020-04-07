@@ -44,11 +44,17 @@ module ObsDeploy
     end
 
     def logger
-      Logger.new(STDOUT, level: logger_level)
+      Logger.new(STDOUT, level: logger_level, formatter: logger_formatter)
     end
 
     def logger_level
       @debug ? Logger::DEBUG : Logger::INFO
+    end
+
+    def logger_formatter
+      proc do |severity, datetime, progname, msg|
+        "#{severity} - #{msg}\n"
+      end
     end
   end
 end
