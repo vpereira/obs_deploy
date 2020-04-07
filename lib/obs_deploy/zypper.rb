@@ -2,8 +2,14 @@
 
 module ObsDeploy
   class Zypper
-    def update(dry_run: true)
-      if dry_run
+    attr_accessor :dry_run
+
+    def initialize(dry_run: true, package_name: 'obs-api')
+      @dry_run = dry_run
+    end
+
+    def update
+      if @dry_run
         run ['zypper'] + update_params + dry_run_params + package_name
       else
         run ['zypper'] + update_params + package_name
