@@ -13,13 +13,34 @@ module ObsDeploy
     end
 
     def build_command
-      command_line = ['-tt', "#{@user}@#{@server}", '-p', @port.to_s]
-      command_line << ['-i', @identity_file] if @identity_file
-      ['ssh'] + command_line.flatten
+      ['ssh'] + basic_connection_string + identity + ssh_port
     end
 
     def run(cmd)
       Cheetah.run(build_command + cmd, logger: logger)
+    end
+
+    private
+
+    # -t Force pseudo-tty allocation.
+    # This can be used to execute arbitrary screen-based programs on a
+    # remote machine, which can be very useful, e.g. when implementing menu services.
+    # Multiple -t
+    # options force tty allocation, even if ssh has no local tty.
+    def ssh_tt
+      ['-tt']
+    end
+
+    def identity
+      @identity_file ? ['-i', @identity_file] : []
+    end
+
+    def basic_connection_string
+      ssh_tt + [[@user, '@', @server].join]
+    end
+
+    def ssh_port
+      @port && @port != 22 ? ['-p', @port.to_s] : []
     end
 
     def logger
