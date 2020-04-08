@@ -31,6 +31,12 @@ module ObsDeploy
       !!github_diff.match(%r{db/migrate})
     end
 
+    def migrations
+      return [] unless has_migration?
+
+      github.diff.grep(%r{db/migrate})
+    end
+
     def package_url
       URI("#{@server}/public/build/OBS:Server:Unstable/#{@product}/x86_64/obs-server")
     end
