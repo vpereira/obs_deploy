@@ -5,10 +5,10 @@ module ObsDeploy
     module Commands
       class GetDeployedVersion < Dry::CLI::Command
         desc 'Get the deployed version of OBS'
-        option :host, type: :string, default: 'https://api.opensuse.org', desc: 'API server'
+        option :url, type: :string, default: 'https://api.opensuse.org', desc: 'API url'
 
-        def call(host:, **)
-          puts "Deployed version: #{ObsDeploy::CheckDiff.new(server: host).obs_running_commit}"
+        def call(url:, **)
+          puts "Deployed version: #{ObsDeploy::CheckDiff.new(server: url).obs_running_commit}"
         end
       end
     end
