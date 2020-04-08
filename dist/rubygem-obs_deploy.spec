@@ -20,7 +20,7 @@
 %define mod_full_name %{mod_name}-%{version}
 %define rb_suffix         ruby2.6
 Name:           rubygem-obs_deploy
-Version:        0.1.5
+Version:        0.2.0
 Release:        0
 Summary:        OBS Deployment tool
 License:        MIT
