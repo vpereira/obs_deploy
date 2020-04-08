@@ -52,7 +52,7 @@ module ObsDeploy
     end
 
     def logger_formatter
-      proc do |severity, datetime, progname, msg|
+      proc do |severity, _datetime, _progname, msg|
         "#{severity} - #{msg}\n"
       end
     end
