@@ -34,7 +34,7 @@ module ObsDeploy
     def migrations
       return [] unless has_migration?
 
-      github.diff.grep(%r{db/migrate})
+      github_diff.grep(%r{db/migrate})
     end
 
     def package_url
