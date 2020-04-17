@@ -64,4 +64,31 @@ RSpec.describe ObsDeploy::CheckDiff do
       end
     end
   end
+
+  describe '#migrations' do
+    subject { check_diff.migrations }
+
+    context 'data is present' do
+      let(:diff_url) { "https://github.com/openSUSE/open-build-service/compare/#{running_commit}...#{package_commit}.diff" }
+      before do
+        allow(check_diff).to receive(:obs_running_commit).and_return(running_commit)
+        allow(check_diff).to receive(:package_commit).and_return(package_commit)
+        stub_request(:get, diff_url).to_return(fixture_file)
+      end
+
+      context 'pending migration' do
+        let(:fixture_file) { File.new('spec/fixtures/github_diff_with_migration.txt') }
+        let(:migration_file) { 'db/migrate/20180110074142_change_handler_to_longtext_in_delayed_jobs.rb' }
+        let(:running_commit) { '52a3a8b' }
+        let(:package_commit) { '2c565b0' }
+        it { expect(subject.first).to include(migration_file) }
+      end
+      context 'no pending migration' do
+        let(:fixture_file) { File.new('spec/fixtures/github_diff_without_migration.txt') }
+        let(:running_commit) { 'bc7f6c0' }
+        let(:package_commit) { '554e943' }
+        it { expect(subject).to be_empty }
+      end
+    end
+  end
 end
