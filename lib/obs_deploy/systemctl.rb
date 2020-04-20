@@ -10,6 +10,10 @@ module ObsDeploy
       run ['systemctl'] + ['list-dependencies'] + target
     end
 
+    def restart_apache
+      run ['systemctl'] + ['restart'] + ['apache2']
+    end
+
     private
 
     def target
