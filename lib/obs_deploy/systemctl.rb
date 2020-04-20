@@ -14,6 +14,10 @@ module ObsDeploy
       run ['systemctl'] + ['restart'] + ['apache2']
     end
 
+    def status_apache
+      run ['systemctl'] + ['status'] + ['apache2']
+    end
+
     private
 
     def target
