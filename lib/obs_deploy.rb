@@ -11,6 +11,7 @@ require 'obs_deploy/check_diff'
 require 'obs_deploy/ssh'
 require 'obs_deploy/zypper'
 require 'obs_deploy/systemctl'
+require 'obs_deploy/apache_sysconfig'
 
 module ObsDeploy
   class Error < StandardError; end
