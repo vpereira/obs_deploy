@@ -6,6 +6,7 @@ module ObsDeploy
 
     def initialize(dry_run: true, package_name: 'obs-api')
       @dry_run = dry_run
+      @package_name = package_name
     end
 
     def update
@@ -16,7 +17,7 @@ module ObsDeploy
       run ['zypper', '--non-interactive', '--gpg-auto-import-keys', 'refresh']
     end
 
-     private
+    private
 
     def run(params)
       params
@@ -31,7 +32,7 @@ module ObsDeploy
     end
 
     def package_name
-      ['obs-api']
+      [@package_name]
     end
 
     def update_params
@@ -41,5 +42,5 @@ module ObsDeploy
     def dry_run_params
       ['--dry-run --download-only']
     end
-   end
+  end
 end
