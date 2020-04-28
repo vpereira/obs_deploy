@@ -1,0 +1,949 @@
+HTTP/1.1 200 OK
+date: Tue, 28 Apr 2020 08:42:27 GMT
+content-type: text/plain; charset=utf-8
+server: GitHub.com
+status: 200 OK
+vary: X-PJAX, Accept-Encoding, Accept, X-Requested-With
+etag: W/"1a83f53bca0dd8417c22495e12a9ffac"
+cache-control: max-age=0, private, must-revalidate
+strict-transport-security: max-age=31536000; includeSubdomains; preload
+x-frame-options: deny
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+expect-ct: max-age=2592000, report-uri="https://api.github.com/_private/browser/errors"
+content-security-policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; connect-src 'self' uploads.github.com www.githubstatus.com collector.githubapp.com api.github.com www.google-analytics.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com cdn.optimizely.com logx.optimizely.com/v1/events wss://live.github.com; font-src github.githubassets.com; form-action 'self' github.com gist.github.com; frame-ancestors 'none'; frame-src render.githubusercontent.com; img-src 'self' data: github.githubassets.com identicons.github.com collector.githubapp.com github-cloud.s3.amazonaws.com *.githubusercontent.com; manifest-src 'self'; media-src 'none'; script-src github.githubassets.com; style-src 'unsafe-inline' github.githubassets.com
+Set-Cookie: _gh_sess=uY8NstxFpLZCDxPW1LPZEaVdH%2FrwHNtZWNFqCJFEH7bWuMc%2BTilpVDkLPOSnMUEV8kYvI4t7fVwl%2FGf8g7K%2B1PhMNBpB%2F9%2B5OBLLlKOM3nKzesO9y9KjqVyxSS5NH0CgkAlC5q3z4rvKG4fjPd0OwLcLnuIzYv%2BslQvbF4MZPC6B0vcWGWQUpULjHtKO%2Bc57F5m0HqJYqkY%2B8gWf4K5d6v6Gjzn1f%2B4PRLlUEmNo1tRupL8x6vQkUJm%2Fq2l7POXUVzOtWkS4KU5z135x8hnqEA%3D%3D--YbTPRVj52erq07jU--%2BpcdVtzdtNCK7cOrGRn7TQ%3D%3D; Path=/; HttpOnly; Secure
+Set-Cookie: _octo=GH1.1.2104268689.1588063347; Path=/; Domain=github.com; Expires=Wed, 28 Apr 2021 08:42:27 GMT; Secure
+Set-Cookie: logged_in=no; Path=/; Domain=github.com; Expires=Wed, 28 Apr 2021 08:42:27 GMT; HttpOnly; Secure
+Accept-Ranges: bytes
+Content-Length: 43089
+X-GitHub-Request-Id: 824C:2102D:6ED57C:A2A604:5EA7EC73
+
+diff --git a/src/api/Gemfile.lock b/src/api/Gemfile.lock
+index 06d32262bd4..2904bff769a 100644
+--- a/src/api/Gemfile.lock
++++ b/src/api/Gemfile.lock
+@@ -91,7 +91,7 @@ GEM
+       amq-protocol (~> 2.3, >= 2.3.1)
+     bunny-mock (1.7.0)
+       bunny (>= 1.7)
+-    byebug (11.1.2)
++    byebug (11.1.3)
+     capybara (3.32.1)
+       addressable
+       mini_mime (>= 0.1.3)
+@@ -153,10 +153,10 @@ GEM
+     erubis (2.7.0)
+     escape_utils (1.2.1)
+     execjs (2.7.0)
+-    factory_bot (5.1.2)
++    factory_bot (5.2.0)
+       activesupport (>= 4.2.0)
+-    factory_bot_rails (5.1.1)
+-      factory_bot (~> 5.1.0)
++    factory_bot_rails (5.2.0)
++      factory_bot (~> 5.2.0)
+       railties (>= 4.2.0)
+     faker (2.11.0)
+       i18n (>= 1.6, < 2)
+diff --git a/src/api/app/controllers/webui/users/notifications_controller.rb b/src/api/app/controllers/webui/users/notifications_controller.rb
+index ec5889b4396..77f1c54a613 100644
+--- a/src/api/app/controllers/webui/users/notifications_controller.rb
++++ b/src/api/app/controllers/webui/users/notifications_controller.rb
+@@ -1,10 +1,20 @@
+ class Webui::Users::NotificationsController < Webui::WebuiController
+-  before_action :require_login
+   MAX_PER_PAGE = 300
++  VALID_NOTIFICATION_TYPES = ['read', 'reviews', 'comments', 'requests', 'unread'].freeze
++
++  before_action :require_login
++  before_action :check_param_type, :check_param_project, only: :index
+ 
+   def index
+-    notifications_for_subscribed_user = NotificationsFinder.new.for_subscribed_user
+-    @notifications = NotificationsFinder.new(notifications_for_subscribed_user).for_notifiable_type(params[:type])
++    notifications_for_subscribed_user = User.session.notifications.for_web
++    @notifications = if params[:project]
++                       NotificationsFinder.new(notifications_for_subscribed_user).for_project_name(params[:project])
++                     else
++                       NotificationsFinder.new(notifications_for_subscribed_user).for_notifiable_type(params[:type])
++                     end
++
++    @projects_for_filter = projects_for_filter
++
+     @notifications = params['show_all'] ? show_all : @notifications.page(params[:page])
+   end
+ 
+@@ -22,6 +32,20 @@ def update
+ 
+   private
+ 
++  def check_param_type
++    return if params[:type].nil? || VALID_NOTIFICATION_TYPES.include?(params[:type])
++
++    flash[:error] = 'Filter not valid.'
++    redirect_to my_notifications_path
++  end
++
++  def check_param_project
++    return unless params[:project] == ''
++
++    flash[:error] = 'Filter not valid.'
++    redirect_to my_notifications_path
++  end
++
+   def show_all
+     total = @notifications.size
+     if total > MAX_PER_PAGE
+@@ -29,4 +53,13 @@ def show_all
+     end
+     @notifications = @notifications.page(params[:page]).per([total, MAX_PER_PAGE].min)
+   end
++
++  # Returns a hash where the key is the name of the project and the value is the amount of notifications
++  # associated to that project. The hash is sorted by amount and then name.
++  def projects_for_filter
++    Project.joins(:notifications)
++           .where(notifications: { subscriber: User.session, delivered: false, web: true })
++           .order('name desc').group(:name).count # this query returns a sorted-by-name hash like { "home:b" => 1, "home:a" => 3  }
++           .sort_by(&:last).reverse.to_h # this sorts the hash by amount: { "home:a" => 3, "home:b" => 1 }
++  end
+ end
+diff --git a/src/api/app/helpers/webui/notification_helper.rb b/src/api/app/helpers/webui/notification_helper.rb
+index 1d56b010212..f6fb8eca2e9 100644
+--- a/src/api/app/helpers/webui/notification_helper.rb
++++ b/src/api/app/helpers/webui/notification_helper.rb
+@@ -8,4 +8,36 @@ def link_to_all
+       link_to('Show all', my_notifications_path(parameters), class: 'btn btn-sm btn-secondary ml-2')
+     end
+   end
++
++  def filter_by_type_link(link_text, filter_item)
++    link_to(link_text, my_notifications_path(filter_item), class: filter_css(filter_item))
++  end
++
++  def filter_by_project_link(link_text, amount, filter_item)
++    badge_color = notification_filter_active?(filter_item) ? 'badge-light' : 'badge-primary'
++    link_to(my_notifications_path(filter_item), class: filter_css(filter_item)) do
++      capture do
++        concat(link_text)
++        concat(content_tag(:span, amount, class: "badge #{badge_color} align-text-top ml-2"))
++      end
++    end
++  end
++
++  private
++
++  def filter_css(filter_item)
++    css_class = 'list-group-item list-group-item-action'
++    css_class += ' active' if notification_filter_active?(filter_item)
++    css_class
++  end
++
++  def notification_filter_active?(filter_item)
++    if params[:project].present?
++      filter_item[:project] == params[:project]
++    elsif params[:type].present?
++      filter_item[:type] == params[:type]
++    else
++      filter_item[:type] == 'unread'
++    end
++  end
+ end
+diff --git a/src/api/app/helpers/webui/webui_helper.rb b/src/api/app/helpers/webui/webui_helper.rb
+index 9439aacc7d1..38f4de612a7 100644
+--- a/src/api/app/helpers/webui/webui_helper.rb
++++ b/src/api/app/helpers/webui/webui_helper.rb
+@@ -401,12 +401,6 @@ def link_content(text, css_class, icon)
+       text
+     end
+   end
+-
+-  def user_notification_link(link_text, new_filter, filter: 'inbox')
+-    css_class = 'list-group-item list-group-item-action'
+-    css_class += ' active' if new_filter == filter || (filter.nil? && new_filter == 'inbox')
+-    link_to(link_text, my_notifications_path(type: new_filter), class: css_class)
+-  end
+ end
+ 
+ # rubocop:enable Metrics/ModuleLength
+diff --git a/src/api/app/jobs/send_event_emails_job.rb b/src/api/app/jobs/send_event_emails_job.rb
+index 4ea3a422063..f2768f4df85 100644
+--- a/src/api/app/jobs/send_event_emails_job.rb
++++ b/src/api/app/jobs/send_event_emails_job.rb
+@@ -4,11 +4,7 @@ class SendEventEmailsJob < ApplicationJob
+   def perform
+     Event::Base.where(mails_sent: false).order(created_at: :asc).limit(1000).each do |event|
+       subscribers = event.subscribers
+-
+-      if subscribers.empty?
+-        event.update_attributes(mails_sent: true)
+-        next
+-      end
++      event.update(mails_sent: true) if subscribers.empty?
+ 
+       NotificationCreator.new(event).call
+       send_email(subscribers, event)
+@@ -19,6 +15,7 @@ def perform
+   private
+ 
+   def send_email(subscribers, event)
++    return if subscribers.empty?
+     EventMailer.event(subscribers, event).deliver_now
+   rescue StandardError => e
+     Airbrake.notify(e, event_id: event.id)
+diff --git a/src/api/app/models/event/base.rb b/src/api/app/models/event/base.rb
+index 45785c7002c..1bd81d867e1 100644
+--- a/src/api/app/models/event/base.rb
++++ b/src/api/app/models/event/base.rb
+@@ -189,8 +189,8 @@ def custom_headers
+       ret
+     end
+ 
+-    def subscriptions
+-      EventSubscription::FindForEvent.new(self).subscriptions
++    def subscriptions(channel = :instant_email)
++      EventSubscription::FindForEvent.new(self).subscriptions(channel)
+     end
+ 
+     def subscribers
+@@ -265,7 +265,6 @@ def parameters_for_notification
+         event_payload: payload,
+         notifiable_id: payload['id'],
+         created_at: payload['when'].to_datetime,
+-        updated_at: payload['when'].to_datetime,
+         title: subject_to_title }
+     end
+ 
+diff --git a/src/api/app/models/event_subscription/find_for_event.rb b/src/api/app/models/event_subscription/find_for_event.rb
+index 98d59ba6686..b77cbc9b856 100644
+--- a/src/api/app/models/event_subscription/find_for_event.rb
++++ b/src/api/app/models/event_subscription/find_for_event.rb
+@@ -6,7 +6,7 @@ def initialize(event)
+       @event = event
+     end
+ 
+-    def subscriptions
++    def subscriptions(channel = :instant_email)
+       receivers_and_subscriptions = {}
+ 
+       event.class.receiver_roles.flat_map do |receiver_role|
+@@ -14,8 +14,9 @@ def subscriptions
+         receivers = event.send("#{receiver_role}s")
+         receivers = filter_and_convert_groups_without_emails_to_users(receivers)
+ 
++        options = { eventtype: event.eventtype, receiver_role: receiver_role, channel: channel }
+         # Find the default subscription for this eventtype and receiver_role
+-        default_subscription = EventSubscription.defaults.find_by(eventtype: event.eventtype, receiver_role: receiver_role)
++        default_subscription = EventSubscription.defaults.find_by(options)
+ 
+         receivers.each do |receiver|
+           # Prevent multiple enabled subscriptions for the same subscriber & eventtype
+@@ -23,7 +24,7 @@ def subscriptions
+           next if receivers_and_subscriptions[receiver].present? || receiver == event.originator
+ 
+           # Try to find the subscription for this receiver
+-          receiver_subscription = EventSubscription.for_subscriber(receiver).find_by(eventtype: event.eventtype, receiver_role: receiver_role)
++          receiver_subscription = EventSubscription.for_subscriber(receiver).find_by(options)
+ 
+           if receiver_subscription.present?
+             # Use the receiver's subscription if it exists
+diff --git a/src/api/app/models/group.rb b/src/api/app/models/group.rb
+index 72767dae2c4..c3169086581 100644
+--- a/src/api/app/models/group.rb
++++ b/src/api/app/models/group.rb
+@@ -13,6 +13,7 @@ class Group < ApplicationRecord
+   has_many :event_subscriptions, dependent: :destroy, inverse_of: :group
+   has_many :reviews, dependent: :nullify
+ 
++  # TODO: Remove with Notification::RssFeedItem
+   has_many :rss_feed_items, -> { order(created_at: :desc) }, class_name: 'Notification::RssFeedItem', as: :subscriber, dependent: :destroy
+   has_many :notifications, -> { order(created_at: :desc) }, as: :subscriber, dependent: :destroy
+ 
+diff --git a/src/api/app/models/notification.rb b/src/api/app/models/notification.rb
+index 2e9d1d13d84..d4105d152fd 100644
+--- a/src/api/app/models/notification.rb
++++ b/src/api/app/models/notification.rb
+@@ -1,4 +1,7 @@
+ class Notification < ApplicationRecord
++  MAX_RSS_ITEMS_PER_USER = 10
++  MAX_RSS_ITEMS_PER_GROUP = 10
++
+   belongs_to :subscriber, polymorphic: true
+   belongs_to :notifiable, polymorphic: true
+ 
+@@ -7,6 +10,9 @@ class Notification < ApplicationRecord
+ 
+   serialize :event_payload, JSON
+ 
++  scope :for_web, -> { where(web: true) }
++  scope :for_rss, -> { where(rss: true) }
++
+   def event
+     @event ||= event_type.constantize.new(event_payload)
+   end
+diff --git a/src/api/app/models/notified_project.rb b/src/api/app/models/notified_project.rb
+index 63f117eb5f6..5e23dedae4e 100644
+--- a/src/api/app/models/notified_project.rb
++++ b/src/api/app/models/notified_project.rb
+@@ -4,4 +4,6 @@ class NotifiedProject < ApplicationRecord
+ 
+   validates :notification, presence: true
+   validates :project, presence: true
++
++  validates :notification_id, uniqueness: { scope: :project_id, message: 'These notification and project are already associated' }
+ end
+diff --git a/src/api/app/models/user.rb b/src/api/app/models/user.rb
+index 6b7d4e7b91b..20577e84b23 100644
+--- a/src/api/app/models/user.rb
++++ b/src/api/app/models/user.rb
+@@ -61,6 +61,7 @@ class User < ApplicationRecord
+   has_one :azure_configuration, class_name: 'Cloud::Azure::Configuration', dependent: :destroy
+   has_many :upload_jobs, class_name: 'Cloud::User::UploadJob', dependent: :destroy
+ 
++  # TODO: Remove with Notification::RssFeedItem
+   has_many :rss_feed_items, -> { order(created_at: :desc) }, class_name: 'Notification::RssFeedItem', as: :subscriber, dependent: :destroy
+   has_many :notifications, -> { order(created_at: :desc) }, as: :subscriber, dependent: :destroy
+ 
+@@ -812,7 +813,7 @@ def tasks
+   end
+ 
+   def unread_notifications
+-    NotificationsFinder.new(notifications).unread.size
++    NotificationsFinder.new(notifications.for_web).unread.size
+   end
+ 
+   def watched_project_names
+@@ -860,9 +861,9 @@ def name
+   end
+ 
+   def combined_rss_feed_items
+-    Notification::RssFeedItem.where(subscriber: self).or(
+-      Notification::RssFeedItem.where(subscriber: groups)
+-    ).order(created_at: :desc, id: :desc).limit(Notification::RssFeedItem::MAX_ITEMS_PER_USER)
++    Notification.for_rss.where(subscriber: self).or(
++      Notification.for_rss.where(subscriber: groups)
++    ).order(created_at: :desc, id: :desc).limit(Notification::MAX_RSS_ITEMS_PER_USER)
+   end
+ 
+   def mark_login!
+diff --git a/src/api/app/queries/notifications_finder.rb b/src/api/app/queries/notifications_finder.rb
+index 3d3b1067a54..474204bc123 100644
+--- a/src/api/app/queries/notifications_finder.rb
++++ b/src/api/app/queries/notifications_finder.rb
+@@ -24,7 +24,7 @@ def for_subscribed_user(user = User.session)
+                     user, user.groups.map(&:id))
+   end
+ 
+-  def for_notifiable_type(type = '')
++  def for_notifiable_type(type = 'unread')
+     notifications = self.class.new(with_notifiable)
+ 
+     case type
+@@ -41,6 +41,10 @@ def for_notifiable_type(type = '')
+     end
+   end
+ 
++  def for_project_name(project_name)
++    unread.joins(:projects).where(projects: { name: project_name })
++  end
++
+   def stale
+     @relation.where('created_at < ?', 3.months.ago)
+   end
+diff --git a/src/api/app/services/notification_creator.rb b/src/api/app/services/notification_creator.rb
+index c622c36c28f..1a900599fa8 100644
+--- a/src/api/app/services/notification_creator.rb
++++ b/src/api/app/services/notification_creator.rb
+@@ -5,6 +5,7 @@ class NotificationCreator
+                       'Event::CommentForProject',
+                       'Event::CommentForPackage',
+                       'Event::CommentForRequest'].freeze
++  CHANNELS = [:web, :rss].freeze
+ 
+   def initialize(event)
+     @event = event
+@@ -12,16 +13,44 @@ def initialize(event)
+ 
+   def call
+     return unless @event.eventtype.in?(EVENTS_TO_NOTIFY)
+-    @event.subscriptions.each { |subscription| create_notification_per_subscription(subscription) }
++
++    CHANNELS.each do |channel|
++      @event.subscriptions(channel).each do |subscription|
++        create_notification_per_subscription(subscription, channel)
++      end
++    end
+   rescue StandardError => e
+     Airbrake.notify(e, event_id: @event.id)
+   end
+ 
+   private
+ 
+-  def create_notification_per_subscription(subscription)
+-    return if subscription.subscriber && subscription.subscriber.away?
++  def create_notification_per_subscription(subscription, channel)
++    return unless create_notification?(subscription.subscriber, channel)
+     params = subscription.parameters_for_notification.merge!(@event.parameters_for_notification)
+-    Notification::RssFeedItem.find_or_create_by!(params) # avoid duplication
++    # TODO: Replace by Notification when we remove Notification::RssFeedItem class
++    notification = Notification::RssFeedItem.find_by(params)
++
++    unless notification
++      notification = Notification::RssFeedItem.create(params)
++      notification.projects << NotifiedProjects.new(notification).call
++    end
++
++    notification.update("#{channel}": true)
++  end
++
++  def create_notification?(subscriber, channel)
++    return false if subscriber && subscriber.away?
++    return false if channel == :rss && !subscriber.try(:rss_token)
++    return false unless notifiable_exists?
++    true
++  end
++
++  def notifiable_exists?
++    # We need this check because the notification is created in a delayed job.
++    # So the notifiable object could have been removed in the meantime.
++    notifiable_type = @event.parameters_for_notification[:notifiable_type]
++    notifiable_id = @event.parameters_for_notification[:notifiable_id]
++    notifiable_type.constantize.exists?(notifiable_id)
+   end
+ end
+diff --git a/src/api/app/views/webui/users/notifications/index.html.haml b/src/api/app/views/webui/users/notifications/index.html.haml
+index dd4eb069331..02ae6147f79 100644
+--- a/src/api/app/views/webui/users/notifications/index.html.haml
++++ b/src/api/app/views/webui/users/notifications/index.html.haml
+@@ -13,14 +13,17 @@
+ 
+       .card-body.collapse#filters
+         .row.list-group-flush
+-          = user_notification_link('Unread', 'unread', filter: params[:type])
+-          = user_notification_link('Read', 'read', filter: params[:type])
++          = filter_by_type_link('Unread', type: 'unread')
++          = filter_by_type_link('Read', type: 'read')
+         .row.list-group-flush.mt-5
+           %h5.ml-3 Filter
+-          = user_notification_link('Reviews', 'reviews', filter: params[:type])
+-          = user_notification_link('Comments', 'comments', filter: params[:type])
+-          = user_notification_link('Requests', 'requests', filter: params[:type])
+-
++          = filter_by_type_link('Reviews', type: 'reviews')
++          = filter_by_type_link('Comments', type: 'comments')
++          = filter_by_type_link('Requests', type: 'requests')
++        .row.list-group-flush.mt-5
++          %h5.ml-3 Projects
++          - @projects_for_filter.each_pair do |project_name, amount|
++            = filter_by_project_link(project_name, amount, project: project_name)
+   .col-md-8.col-lg-9#notifications-list
+     .card
+       .card-body
+diff --git a/src/api/db/data/20200424080753_generate_web_notifications.rb b/src/api/db/data/20200424080753_generate_web_notifications.rb
+new file mode 100644
+index 00000000000..9557bb4d61b
+--- /dev/null
++++ b/src/api/db/data/20200424080753_generate_web_notifications.rb
+@@ -0,0 +1,50 @@
++class GenerateWebNotifications < ActiveRecord::Migration[6.0]
++  def up
++    Notification.update(rss: true, web: true)
++    update_existent_event_subscriptions
++    generate_subscripitions
++  end
++
++  def down
++    raise ActiveRecord::IrreversibleMigration
++  end
++
++  private
++
++  def update_existent_event_subscriptions
++    enabled_subscriptions = EventSubscription.where(channel: :instant_email)
++    enabled_subscriptions.update(enabled: true)
++
++    disabled_subscriptions = EventSubscription.where(channel: :disabled)
++    disabled_subscriptions.update(channel: :instant_email)
++  end
++
++  def generate_subscripitions
++    subscriptions = EventSubscription.where(channel: :instant_email, enabled: true)
++    subscriptions.each do |subscription|
++      create_subscription_for_channel(subscription, :web)
++      create_subscription_for_channel_rss(subscription, subscription.subscriber)
++    end
++  end
++
++  def create_subscription_for_channel(subscription, channel)
++    return if eventtype_disabled_for_web_and_rss?(subscription.eventtype)
++    subscription = EventSubscription.find_or_initialize_by(user_id: subscription.user_id,
++                                                           group_id: subscription.group_id,
++                                                           receiver_role: subscription.receiver_role,
++                                                           eventtype: subscription.eventtype,
++                                                           channel: channel)
++    subscription.enabled = true
++    subscription.save!
++  end
++
++  def create_subscription_for_channel_rss(subscription, subscriber)
++    return if subscriber && !subscriber.try(:rss_token)
++
++    create_subscription_for_channel(subscription, :rss)
++  end
++
++  def eventtype_disabled_for_web_and_rss?(event_type)
++    ['Event::BuildFail', 'Event::ServiceFail'].include?(event_type)
++  end
++end
+diff --git a/src/api/db/data_schema.rb b/src/api/db/data_schema.rb
+index 1028bfecc12..4362ef4a5c4 100644
+--- a/src/api/db/data_schema.rb
++++ b/src/api/db/data_schema.rb
+@@ -1,2 +1,2 @@
+ # encoding: UTF-8
+-DataMigrate::Data.define(version: 20190902110039)
++DataMigrate::Data.define(version: 20200424080753)
+diff --git a/src/api/db/migrate/20200422134122_add_rss_and_web_to_notification.rb b/src/api/db/migrate/20200422134122_add_rss_and_web_to_notification.rb
+new file mode 100644
+index 00000000000..c0012e3c748
+--- /dev/null
++++ b/src/api/db/migrate/20200422134122_add_rss_and_web_to_notification.rb
+@@ -0,0 +1,15 @@
++class AddRssAndWebToNotification < ActiveRecord::Migration[6.0]
++  def up
++    safety_assured do
++      add_column :notifications, :rss, :boolean, default: false
++      add_column :notifications, :web, :boolean, default: false
++    end
++  end
++
++  def down
++    safety_assured do
++      remove_column :notifications, :rss
++      remove_column :notifications, :web
++    end
++  end
++end
+diff --git a/src/api/db/structure.sql b/src/api/db/structure.sql
+index 693bdb23546..5ed74066905 100644
+--- a/src/api/db/structure.sql
++++ b/src/api/db/structure.sql
+@@ -851,6 +851,8 @@ CREATE TABLE `notifications` (
+   `bs_request_oldstate` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+   `bs_request_state` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+   `title` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
++  `rss` tinyint(1) DEFAULT '0',
++  `web` tinyint(1) DEFAULT '0',
+   PRIMARY KEY (`id`),
+   KEY `index_notifications_on_subscriber_type_and_subscriber_id` (`subscriber_type`,`subscriber_id`),
+   KEY `index_notifications_on_notifiable_type_and_notifiable_id` (`notifiable_type`,`notifiable_id`)
+@@ -1506,6 +1508,7 @@ INSERT INTO `schema_migrations` (version) VALUES
+ ('20200318123203'),
+ ('20200402141344'),
+ ('20200421115317'),
++('20200422134122'),
+ ('20200423160517');
+ 
+ 
+diff --git a/src/api/spec/controllers/webui/users/notifications_controller_spec.rb b/src/api/spec/controllers/webui/users/notifications_controller_spec.rb
+index 601b368c843..615ec2fff94 100644
+--- a/src/api/spec/controllers/webui/users/notifications_controller_spec.rb
++++ b/src/api/spec/controllers/webui/users/notifications_controller_spec.rb
+@@ -4,14 +4,14 @@
+   let(:username) { 'reynoldsm' }
+   let!(:user) { create(:confirmed_user, login: username) }
+   let!(:other_user) { create(:confirmed_user) }
+-  let(:state_change_notification) { create(:notification, :request_state_change, subscriber: user) }
+-  let(:creation_notification) { create(:notification, :request_created, subscriber: user) }
+-  let(:review_notification) { create(:notification, :review_wanted, subscriber: user) }
+-  let(:comment_for_project_notification) { create(:notification, :comment_for_project, subscriber: user) }
+-  let(:comment_for_package_notification) { create(:notification, :comment_for_package, subscriber: user) }
+-  let(:comment_for_request_notification) { create(:notification, :comment_for_request, subscriber: user) }
+-  let(:read_notification) { create(:notification, :request_state_change, subscriber: user, delivered: true) }
+-  let(:notifications_for_other_users) { create(:notification, :request_state_change, subscriber: other_user) }
++  let(:state_change_notification) { create(:web_notification, :request_state_change, subscriber: user) }
++  let(:creation_notification) { create(:web_notification, :request_created, subscriber: user) }
++  let(:review_notification) { create(:web_notification, :review_wanted, subscriber: user) }
++  let(:comment_for_project_notification) { create(:web_notification, :comment_for_project, subscriber: user) }
++  let(:comment_for_package_notification) { create(:web_notification, :comment_for_package, subscriber: user) }
++  let(:comment_for_request_notification) { create(:web_notification, :comment_for_request, subscriber: user) }
++  let(:read_notification) { create(:web_notification, :request_state_change, subscriber: user, delivered: true) }
++  let(:notifications_for_other_users) { create(:web_notification, :request_state_change, subscriber: other_user) }
+ 
+   shared_examples 'returning success' do
+     it 'returns ok status' do
+@@ -120,7 +120,7 @@
+         put :update, params: { id: read_notification.id, user_login: user_to_log_in.login }
+       end
+ 
+-      let(:read_notification) { create(:notification, :request_state_change, subscriber: user, delivered: true) }
++      let(:read_notification) { create(:web_notification, :request_state_change, subscriber: user, delivered: true) }
+       let(:user_to_log_in) { user }
+ 
+       it 'redirects back' do
+diff --git a/src/api/spec/db/data/generate_web_notifications_spec.rb b/src/api/spec/db/data/generate_web_notifications_spec.rb
+new file mode 100644
+index 00000000000..78cf52816c3
+--- /dev/null
++++ b/src/api/spec/db/data/generate_web_notifications_spec.rb
+@@ -0,0 +1,59 @@
++require 'rails_helper'
++require Rails.root.join('db/data/20200424080753_generate_web_notifications.rb')
++
++RSpec.describe GenerateWebNotifications, type: :migration do
++  describe 'up' do
++    let(:owner) { create(:confirmed_user, login: 'bob') }
++    let(:requester) { create(:confirmed_user, login: 'ann') }
++    let!(:rss_notifications) { create_list(:rss_notification, 5, subscriber: owner) }
++    let!(:event_subscription_1) { create(:event_subscription_comment_for_project, user: owner) }
++    let!(:event_subscription_2) { create(:event_subscription_comment_for_project, user: owner, receiver_role: 'maintainer') }
++    let!(:event_subscription_3) { create(:event_subscription_comment_for_project, user: owner, receiver_role: 'bugowner') }
++    let!(:disabled_event_for_web_and_rss) { create(:event_subscription, eventtype: 'Event::BuildFail', user: owner, receiver_role: 'maintainer') }
++    let!(:default_subscription) { create(:event_subscription_comment_for_project_without_subscriber, receiver_role: 'bugowner') }
++    let!(:default_subscription_1) { create(:event_subscription_comment_for_project_without_subscriber, receiver_role: 'watcher') }
++    let!(:default_subscription_2) do
++      create(:event_subscription_comment_for_project_without_subscriber,
++             receiver_role: 'maintainer',
++             channel: :disabled,
++             enabled: false)
++    end
++
++    subject { GenerateWebNotifications.new.up }
++
++    it { expect { subject }.to change(EventSubscription, :count).from(7).to(14) }
++
++    context 'check notification data' do
++      before do
++        subject
++      end
++
++      it { expect(Notification.pluck(:web)).to be_none(false) }
++      it { expect(Notification.pluck(:rss)).to be_none(false) }
++    end
++
++    context 'check user subscriptions' do
++      before do
++        subject
++      end
++
++      it { expect(owner.event_subscriptions.where(channel: :rss)).to be_empty }
++      it { expect(owner.event_subscriptions.where(channel: :web)).not_to be_empty }
++      it { expect(owner.event_subscriptions.where(channel: :web).count).to eq(3) }
++      it { expect(owner.event_subscriptions.where(eventtype: 'Event::BuildFail').count).to eq(1) }
++    end
++
++    context 'check default subscriptions' do
++      before do
++        subject
++      end
++
++      it { expect(EventSubscription.defaults.where(channel: :rss)).not_to be_empty }
++      it { expect(EventSubscription.defaults.where(channel: :rss).count).to be(2) }
++      it { expect(EventSubscription.defaults.where(channel: :web)).not_to be_empty }
++      it { expect(EventSubscription.defaults.where(channel: :web).count).to be(2) }
++      it { expect(EventSubscription.defaults.find_by(receiver_role: 'maintainer')).to be_instant_email }
++      it { expect(EventSubscription.defaults.find_by(receiver_role: 'maintainer')).not_to be_enabled }
++    end
++  end
++end
+diff --git a/src/api/spec/db/data/regenerate_notifications_spec.rb b/src/api/spec/db/data/regenerate_notifications_spec.rb
+index 4e3242687c1..f09ca2c2dc1 100644
+--- a/src/api/spec/db/data/regenerate_notifications_spec.rb
++++ b/src/api/spec/db/data/regenerate_notifications_spec.rb
+@@ -44,10 +44,15 @@
+     end
+     let!(:revoked_bs_request) { create(:bs_request, type: 'maintenance_release', state: :revoked) } # This shouldn't regenerate notification
+ 
++    before do
++      owner.create_rss_token
++    end
++
+     subject { RegenerateNotifications.new.up }
+ 
+     context 'for RequestCreate Notifications' do
+-      let!(:subscription) { create(:event_subscription_request_created, receiver_role: 'target_maintainer', user: owner) }
++      let!(:rss_subscription) { create(:event_subscription_request_created, receiver_role: 'target_maintainer', user: owner, channel: :rss) }
++      let!(:web_subscription) { create(:event_subscription_request_created, receiver_role: 'target_maintainer', user: owner, channel: :web) }
+ 
+       before do
+         subject
+@@ -62,13 +67,14 @@
+         expect(notification.notifiable).to eq(new_bs_request)
+         # Timestamps compared with .to_s because they have different precision and the values differ slightly.
+         expect(notification.created_at.to_s).to eq(new_bs_request.updated_when.to_s)
+-        expect(notification.updated_at.to_s).to eq(new_bs_request.updated_when.to_s)
+         expect(notification.title).to eq("Request #{new_bs_request.number} created by #{requester} (submit #{project}/#{package})")
++        expect(notification).to be_web
++        expect(notification).to be_rss
+       end
+     end
+ 
+     context 'for RequesStatechange Notifications' do
+-      let!(:subscription) { create(:event_subscription_request_statechange, receiver_role: 'target_maintainer', user: owner) }
++      let!(:subscription) { create(:event_subscription_request_statechange, receiver_role: 'target_maintainer', user: owner, channel: :rss) }
+ 
+       before do
+         subject
+@@ -83,7 +89,6 @@
+         expect(notification.notifiable).to eq(declined_bs_request)
+         expect(notification.title).to eq("Request #{declined_bs_request.number} changed from new to declined (submit #{project}/#{package})")
+         expect(notification.created_at.to_s).to eq(declined_bs_request.updated_when.to_s)
+-        expect(notification.updated_at.to_s).to eq(declined_bs_request.updated_when.to_s)
+         expect(notification.bs_request_oldstate).to eq('new')
+       end
+     end
+@@ -101,7 +106,7 @@
+       let!(:accepted_review) { create(:review, bs_request: review_request, by_user: owner, state: :accepted) }
+ 
+       context 'with review by user' do
+-        let!(:subscription) { create(:event_subscription_review_wanted, receiver_role: 'reviewer', user: owner) }
++        let!(:subscription) { create(:event_subscription_review_wanted, receiver_role: 'reviewer', user: owner, channel: :rss) }
+         let!(:review) { create(:review, bs_request: review_request, by_user: owner, state: :new, updated_at: 10.days.ago) }
+ 
+         before do
+@@ -116,7 +121,6 @@
+           expect(notification.event_payload['number']).to eq(review_request.number)
+           expect(notification.notifiable).to eq(review)
+           expect(notification.created_at.to_s).to eq(review.updated_at.to_s)
+-          expect(notification.updated_at.to_s).to eq(review.updated_at.to_s)
+           expect(notification.title).to eq("Request #{review_request.number} requires review (submit #{project}/#{package})")
+         end
+       end
+@@ -125,7 +129,8 @@
+         let(:reviewer_1) { create(:confirmed_user, login: 'reviewer_1') }
+         let(:package_2) { create(:package, name: 'package_2') }
+         let!(:relationship) { create(:relationship_package_user, user: reviewer_1, package: package_2) }
+-        let!(:subscription) { create(:event_subscription_review_wanted, receiver_role: 'reviewer', user: reviewer_1) }
++        let!(:web_subscription) { create(:event_subscription_review_wanted, receiver_role: 'reviewer', user: reviewer_1, channel: :web) }
++        let!(:rss_subscription) { create(:event_subscription_review_wanted, receiver_role: 'reviewer', user: reviewer_1, channel: :rss) }
+         let!(:review_by_package) { create(:review, bs_request: review_request, by_project: package_2.project, by_package: package_2, state: :new) }
+ 
+         before do
+@@ -140,12 +145,14 @@
+           expect(notification.event_payload['number']).to eq(review_request.number)
+           expect(notification.notifiable).to eq(review_by_package)
+           expect(notification.title).to eq("Request #{review_request.number} requires review (submit #{project}/#{package})")
++          expect(notification).to be_web
++          expect(notification).not_to be_rss
+         end
+       end
+     end
+ 
+     context 'for CommentForRequest Notifications' do
+-      let!(:subscription) { create(:event_subscription_comment_for_request, receiver_role: 'target_maintainer', user: owner) }
++      let!(:subscription) { create(:event_subscription_comment_for_request, receiver_role: 'target_maintainer', user: owner, channel: :rss) }
+       let!(:old_comment_for_request) { create(:comment_request, commentable: new_bs_request, user: requester, created_at: 4.weeks.ago) }
+       let!(:comment_for_request) { create(:comment_request, commentable: new_bs_request, user: requester, updated_at: 1.week.ago) }
+       let!(:comment_for_project) { create(:comment_project, commentable: project, user: requester) } # Shouldn't regenerate notification
+@@ -164,13 +171,12 @@
+         expect(notification.event_payload['number']).to eq(new_bs_request.number)
+         expect(notification.notifiable).to eq(comment_for_request)
+         expect(notification.created_at.to_s).to eq(comment_for_request.updated_at.to_s)
+-        expect(notification.updated_at.to_s).to eq(comment_for_request.updated_at.to_s)
+         expect(notification.title).to eq("Request #{new_bs_request.number} commented by #{requester} (submit #{project}/#{package})")
+       end
+     end
+ 
+     context 'when running the job after running the data migration' do
+-      let!(:subscription) { create(:event_subscription_comment_for_request, receiver_role: 'target_maintainer', user: owner) }
++      let!(:subscription) { create(:event_subscription_comment_for_request, receiver_role: 'target_maintainer', user: owner, channel: :rss) }
+       let!(:comment_for_request) { create(:comment_request, commentable: new_bs_request, user: requester, body: 'bla') }
+       let(:events) { Event::Base.where(eventtype: 'Event::CommentForRequest') }
+       let(:comment_notifications) { Notification.where(notifiable_type: 'Comment') }
+diff --git a/src/api/spec/factories/notification.rb b/src/api/spec/factories/notification.rb
+index 57ff3ad0605..8572f48b477 100644
+--- a/src/api/spec/factories/notification.rb
++++ b/src/api/spec/factories/notification.rb
+@@ -40,6 +40,22 @@
+   end
+ 
+   factory :rss_notification, parent: :notification, class: 'Notification::RssFeedItem' do
++    rss { true }
++
++    transient do
++      stale { false }
++    end
++    after(:create) do |notification, evaluator|
++      if evaluator.stale
++        notification.created_at = 6.months.ago
++        notification.save
++      end
++    end
++  end
++
++  factory :web_notification, parent: :notification, class: 'Notification::RssFeedItem' do
++    web { true }
++
+     transient do
+       stale { false }
+     end
+diff --git a/src/api/spec/jobs/send_event_emails_job_spec.rb b/src/api/spec/jobs/send_event_emails_job_spec.rb
+index 6fd38c557f6..b6a0062b4be 100644
+--- a/src/api/spec/jobs/send_event_emails_job_spec.rb
++++ b/src/api/spec/jobs/send_event_emails_job_spec.rb
+@@ -20,7 +20,10 @@
+ 
+     context 'with no errors being raised' do
+       let!(:subscription1) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user) }
+-      let!(:subscription2) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: nil, group: group) }
++      let!(:subscription2) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user, channel: :rss) }
++      let!(:subscription3) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: nil, group: group) }
++      let!(:subscription4) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: nil, group: group, channel: :web) }
++      let!(:subscription5) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user, channel: :web) }
+ 
+       subject! { SendEventEmailsJob.new.perform }
+ 
+@@ -31,28 +34,30 @@
+         expect(email.subject).to include('New comment')
+       end
+ 
+-      it "creates an rss notification for user's email" do
+-        notification = Notification.find_by(subscriber: user)
++      it "not creates an rss notification for user's email if users doesn't have rss token" do
++        expect(Notification.find_by(subscriber: user, rss: true)).to be_nil
++      end
++
++      it "creates an web notification for user's email" do
++        notification = Notification.find_by(subscriber: user, web: true)
+ 
+-        expect(notification.type).to eq('Notification::RssFeedItem')
+         expect(notification.event_type).to eq('Event::CommentForProject')
+         expect(notification.event_payload['comment_body']).to include('how are things?')
+         expect(notification.subscription_receiver_role).to eq('maintainer')
+         expect(notification.delivered).to be_falsey
+       end
+ 
+-      it "creates an rss notification with the same raw value of the corresponding event's payload" do
+-        notification = Notification.find_by(subscriber: user)
++      it "creates an web notification with the same raw value of the corresponding event's payload" do
++        notification = Notification.find_by(subscriber: user, web: true)
+         raw_event_payload = Event::Base.first.attributes_before_type_cast['payload']
+         raw_notification_payload = notification.attributes_before_type_cast['event_payload']
+ 
+         expect(raw_event_payload).to eq(raw_notification_payload)
+       end
+ 
+-      it "creates an rss notification for group's email" do
+-        notification = Notification::RssFeedItem.find_by(subscriber: group)
++      it "creates an web notification for group's email" do
++        notification = Notification.find_by(subscriber: group, web: true)
+ 
+-        expect(notification.type).to eq('Notification::RssFeedItem')
+         expect(notification.event_type).to eq('Event::CommentForProject')
+         expect(notification.event_payload['comment_body']).to include('how are things?')
+         expect(notification.subscription_receiver_role).to eq('maintainer')
+@@ -64,6 +69,24 @@
+       end
+     end
+ 
++    context 'when user has rss token' do
++      let!(:subscription) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user, channel: :rss) }
++      before do
++        user.create_rss_token
++      end
++
++      subject! { SendEventEmailsJob.new.perform }
++
++      it "creates an rss notification for user's email" do
++        notification = Notification.find_by(subscriber: user, rss: true)
++
++        expect(notification.event_type).to eq('Event::CommentForProject')
++        expect(notification.event_payload['comment_body']).to include('how are things?')
++        expect(notification.subscription_receiver_role).to eq('maintainer')
++        expect(notification.delivered).to be_falsey
++      end
++    end
++
+     context 'with an error being raised' do
+       let!(:subscription1) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user) }
+       let!(:subscription2) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: nil, group: group) }
+diff --git a/src/api/spec/models/user_spec.rb b/src/api/spec/models/user_spec.rb
+index fa151713923..cd2fc9fa1fc 100644
+--- a/src/api/spec/models/user_spec.rb
++++ b/src/api/spec/models/user_spec.rb
+@@ -362,8 +362,8 @@
+   end
+ 
+   describe '#combined_rss_feed_items' do
+-    let(:max_items_per_user) { Notification::RssFeedItem::MAX_ITEMS_PER_USER }
+-    let(:max_items_per_group) { Notification::RssFeedItem::MAX_ITEMS_PER_GROUP }
++    let(:max_items_per_user) { Notification::MAX_RSS_ITEMS_PER_USER }
++    let(:max_items_per_group) { Notification::MAX_RSS_ITEMS_PER_GROUP }
+     let(:group) { create(:group) }
+     let!(:groups_user) { create(:groups_user, user: confirmed_user, group: group) }
+ 
+diff --git a/src/api/spec/services/notification_creator_spec.rb b/src/api/spec/services/notification_creator_spec.rb
+index c71dd36c64a..a8ed819ca02 100644
+--- a/src/api/spec/services/notification_creator_spec.rb
++++ b/src/api/spec/services/notification_creator_spec.rb
+@@ -5,8 +5,9 @@
+   let(:user_kim) { create(:confirmed_user, login: 'kim') }
+   let(:commenter) { create(:confirmed_user, login: 'ann') }
+ 
+-  let!(:bob_subscription) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user_bob) }
+-  let!(:kim_subscription) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user_kim) }
++  let!(:bob_subscription) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user_bob, channel: :rss) }
++  let!(:bob_web_subscription) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user_bob, channel: :web) }
++  let!(:kim_subscription) { create(:event_subscription_comment_for_project, receiver_role: 'maintainer', user: user_kim, channel: :rss) }
+ 
+   let(:project) { create(:project, name: 'bobkim_project') }
+   let!(:relationship_bob) { create(:relationship_project_user, user: user_bob, project: project) }
+@@ -17,19 +18,48 @@
+   let(:comment_notifications) { Notification.where(notifiable_type: 'Comment') }
+ 
+   describe '#call' do
+-    subject! { NotificationCreator.new(event).call }
++    subject { NotificationCreator.new(event).call }
+ 
+-    it 'creates only one CommentForProject notifications for subscriber' do
+-      expect(Notification::RssFeedItem.count).to eq(2)
+-      expect(Notification::RssFeedItem.where(event_type: 'Event::CommentForProject').pluck(:subscriber_id)).to match_array([user_bob.id, user_kim.id])
++    context 'when users has rss token' do
++      before do
++        user_bob.create_rss_token
++        user_kim.create_rss_token
++
++        subject
++      end
++
++      it 'creates only one CommentForProject notifications for subscriber' do
++        expect(Notification.count).to eq(2)
++        expect(Notification.where(event_type: 'Event::CommentForProject').pluck(:subscriber_id)).to match_array([user_bob.id, user_kim.id])
++      end
++
++      it 'creates one notification with rss and web checked' do
++        expect(Notification.find_by(subscriber: user_bob)).to be_web
++        expect(Notification.find_by(subscriber: user_bob)).to be_rss
++      end
++
++      it 'creates one notification with rss checked' do
++        expect(Notification.find_by(subscriber: user_kim)).not_to be_web
++        expect(Notification.find_by(subscriber: user_kim)).to be_rss
++      end
++
++      context 'when tries to create notifications twice' do
++        it 'creates only one CommentForProject notifications for subscriber and do not duplicate them' do
++          expect(Notification.count).to eq(2)
++          # Tries to create the same notifications twice:
++          expect { NotificationCreator.new(event).call }.not_to change(Notification, :count)
++        end
++      end
+     end
+ 
+-    context 'when tries to create notifications twice' do
+-      it 'creates only one CommentForProject notifications for subscriber and do not duplicate them' do
+-        expect(Notification::RssFeedItem.count).to eq(2)
+-        # Tries to create the same notifications twice:
+-        expect { NotificationCreator.new(event).call }.not_to change(Notification::RssFeedItem, :count)
++    context "when users don't have rss token" do
++      before do
++        subject
+       end
++
++      it { expect(Notification.count).to eq(1) }
++      it { expect(Notification.first).to be_web }
++      it { expect(Notification.first).not_to be_rss }
+     end
+   end
+ end

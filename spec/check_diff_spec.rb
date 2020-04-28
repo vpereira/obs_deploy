@@ -32,6 +32,24 @@ RSpec.describe ObsDeploy::CheckDiff do
     it { expect(subject).to eq('e179ddc8f9') }
   end
 
+  describe 'has_data_migration?' do
+    let(:diff_url) { "https://github.com/openSUSE/open-build-service/compare/#{running_commit}...#{package_commit}.diff" }
+
+    before do
+      allow(check_diff).to receive(:obs_running_commit).and_return(running_commit)
+      allow(check_diff).to receive(:package_commit).and_return(package_commit)
+      stub_request(:get, diff_url).to_return(fixture_file)
+    end
+
+    context 'pending migration' do
+      let(:fixture_file) { File.new('spec/fixtures/github_diff_with_data_migration.txt') }
+      let(:running_commit) { '2392177' }
+      let(:package_commit) { '8c6783b' }
+      it { expect(check_diff).to have_migration }
+      it { expect(check_diff.data_migrations).not_to be_empty }
+    end
+  end
+
   describe 'has_migration?' do
     context 'data is present' do
       let(:diff_url) { "https://github.com/openSUSE/open-build-service/compare/#{running_commit}...#{package_commit}.diff" }
