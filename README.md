@@ -61,6 +61,10 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+### Fixtures
+
+To generate the fixtures (located under `spec/fixtures`), we are using `curl -si $URL > $FIXTURE` 
+
 ### Run the `bin/obs_deploy` on development:
 
 On the checked out source, run the following:
