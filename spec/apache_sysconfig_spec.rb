@@ -1,14 +1,20 @@
 # frozen_string_literal: true
 
+require 'pry'
 require 'tempfile'
 
 RSpec.describe ObsDeploy::ApacheSysconfig do
   let!(:apache_sysconfig) { described_class.new }
 
+  let(:sysconfig_fixture) { File.read(File.join(__dir__, 'fixtures', 'apache_sysconfig.txt')) }
+
   let(:apache_sysconfig_file) { Tempfile.new }
 
   before do
-    allow(apache_sysconfig).to receive(:apache_sysconfig).and_return(apache_sysconfig_file.path)
+    # add content to apache_sysconfig_file
+    apache_sysconfig_file.write(sysconfig_fixture)
+    apache_sysconfig_file.flush
+    allow(apache_sysconfig).to receive(:path).and_return(apache_sysconfig_file.path)
   end
 
   after do
@@ -16,7 +22,7 @@ RSpec.describe ObsDeploy::ApacheSysconfig do
   end
 
   describe '#apache_sysconfig' do
-    it { expect(apache_sysconfig.apache_sysconfig).to eq(apache_sysconfig_file.path) }
+    it { expect(apache_sysconfig.path).to eq(apache_sysconfig_file.path) }
   end
 
   describe '#enable_maintenance_mode' do
