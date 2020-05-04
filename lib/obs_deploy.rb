@@ -12,6 +12,7 @@ require 'obs_deploy/ssh'
 require 'obs_deploy/zypper'
 require 'obs_deploy/systemctl'
 require 'obs_deploy/apache_sysconfig'
+require 'tempfile'
 
 module ObsDeploy
   class Error < StandardError; end

@@ -51,7 +51,16 @@ module ObsDeploy
     end
 
     def write_apache_sysconfig(content)
-      File.open(path, 'wb') { |file| file.write(content) }
+      f = Tempfile.new
+      f.write(content)
+      begin
+        File.rename(f.path, path)
+      rescue SystemCallError => e
+        puts e.inspect
+      ensure
+        f.unlink
+        f.close
+      end
     end
   end
 end
