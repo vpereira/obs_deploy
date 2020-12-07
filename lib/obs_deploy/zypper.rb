@@ -10,11 +10,11 @@ module ObsDeploy
     end
 
     def update
-      run ['zypper'] + update_string + package_name
+      run %w[zypper] + update_string + package_name
     end
 
     def refresh
-      run ['zypper', '--non-interactive', '--gpg-auto-import-keys', 'refresh']
+      run %w[zypper --non-interactive --gpg-auto-import-keys refresh]
     end
 
     # TODO
@@ -51,11 +51,11 @@ module ObsDeploy
     end
 
     def update_params
-      ['--non-interactive', 'update', '--best-effort', '--details']
+      %w[--non-interactive update --best-effort --details]
     end
 
     def dry_run_params
-      ['--dry-run --download-only']
+      %w[--dry-run --download-only]
     end
   end
 end

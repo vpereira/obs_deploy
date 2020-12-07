@@ -16,7 +16,7 @@ RSpec.describe ObsDeploy::Zypper do
     context 'dry_run true' do
       it {
         expect(subject.update).to eq(['zypper', '--non-interactive', 'update',
-                                      '--best-effort', '--details', '--dry-run --download-only',
+                                      '--best-effort', '--details', '--dry-run', '--download-only',
                                       'obs-api'])
       }
     end
