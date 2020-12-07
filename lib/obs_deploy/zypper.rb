@@ -28,8 +28,15 @@ module ObsDeploy
     end
 
     def locked?
-      # check the return value
-      run %w[zypper locks] + package_name
+      result = run(%w[zypper locks] + package_name, stdout: :capture)
+
+      # Output example from zypper locks xz
+      #
+      #   | Name     | Type    | Repository
+      # --+----------+---------+-----------
+      # 1 | xz       | package | (any)
+      # 2 | xz-devel | package | (any)
+      result.match?(/^\d+ \| #{@package_name} +\|.+$/)
     end
 
     private
