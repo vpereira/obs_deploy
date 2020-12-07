@@ -1,16 +1,19 @@
 # frozen_string_literal: true
 
 RSpec.describe ObsDeploy::Zypper do
+  subject { described_class.new }
   describe '.new' do
     context 'default parameters' do
-      subject { described_class.new }
       it { expect(subject.dry_run).to be_truthy }
     end
   end
 
+  describe 'addlock' do
+    it { expect(subject.add_lock).to eq(%w[zypper addlock obs-api]) }
+  end
+
   describe '#update' do
     context 'dry_run true' do
-      subject { described_class.new }
       it {
         expect(subject.update).to eq(['zypper', '--non-interactive', 'update',
                                       '--best-effort', '--details', '--dry-run --download-only',
