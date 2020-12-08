@@ -87,7 +87,7 @@ if you want to run it against the OBS appliance running on VirtualBox:
 - then run the container as:
 
     ```
-    docker run --rm -it -v "$HOME/.ssh:/tmp/.ssh:ro" $USER/obs_deploy bash
+    make docker-dev
     ```
 Now you are inside the container and should be able to ping the obs appliance.
 
@@ -103,6 +103,15 @@ $ obs_deploy refresh-repositories --host=$APPLIANCE_IP
 If you want to add new command to the cli, please read the `dry-cli` documentation https://dry-rb.org/gems/dry-cli/0.4/. The commands are in the `obs_deploy/cli/commands` directory.
 
 The commands are being sent via ssh and ssh is being called via `cheetah` https://github.com/openSUSE/cheetah. Please Read the `ssh.rb` file, specially the `SSH#run` method
+
+## RPM Building
+
+Under dist/ we have the necessary files to use to build the gem as rpm. The
+`_service` still not used. Mainly because we need either to build the rubygem
+dependencies or use https://github.com/openSUSE/obs-service-bundle_gems
+
+Today as it is, you have to push the gem to rubygems and then generate the spec
+and push it to build service
 
 ## Contributing
 
