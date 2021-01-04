@@ -2,9 +2,10 @@
 
 module ObsDeploy
   class CheckDiff
-    def initialize(server: 'https://api.opensuse.org', product: 'SLE_12_SP4')
+    def initialize(server: 'https://api.opensuse.org', product: 'SLE_12_SP4', project: 'OBS:Server:Unstable')
       @server = server
       @product = product
+      @project = project
     end
 
     def package_version
@@ -23,6 +24,10 @@ module ObsDeploy
 
     def github_diff
       Net::HTTP.get(URI("https://github.com/openSUSE/open-build-service/compare/#{obs_running_commit}...#{package_commit}.diff"))
+    end
+
+    def new_version_available?
+      obs_running_commit != package_commit
     end
 
     def has_migration?
@@ -50,7 +55,7 @@ module ObsDeploy
     end
 
     def package_url
-      URI("#{@server}/public/build/OBS:Server:Unstable/#{@product}/x86_64/obs-server")
+      URI("#{@server}/public/build/#{@project}/#{@product}/x86_64/obs-server")
     end
 
     def about_url

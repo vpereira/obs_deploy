@@ -6,6 +6,19 @@ RSpec.describe ObsDeploy::CheckDiff do
 
   it { expect(check_diff).not_to be_nil }
 
+  describe '#package_url' do
+    subject { check_diff.package_url.to_s }
+    context 'default parameter' do
+      let(:url) { 'https://api.opensuse.org/public/build/OBS:Server:Unstable/SLE_12_SP4/x86_64/obs-server' }
+      it { expect(subject).to eq(url) }
+    end
+
+    context 'project = OBS:Server:2.10:Staging' do
+      let(:check_diff) { described_class.new(product: 'openSUSE_15.1', project: 'OBS:Server:2.10:Staging') }
+      let(:url) { 'https://api.opensuse.org/public/build/OBS:Server:2.10:Staging/openSUSE_15.1/x86_64/obs-server' }
+      it { expect(subject).to eq(url) }
+    end
+  end
   describe '#package_version' do
     let(:fixture_file) { File.new('spec/fixtures/package.txt') }
     let(:package_name) { 'obs-api-2.11~alpha.20200330T141742.e179ddc8f9-9958.1.noarch.rpm' }
