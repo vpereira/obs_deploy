@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    obs_deploy (0.3.0)
+    obs_deploy (0.3.1)
       cheetah
       dry-cli
       nokogiri

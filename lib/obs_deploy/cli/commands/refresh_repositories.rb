@@ -12,7 +12,7 @@ module ObsDeploy
 
         def call(user:, dry_run:, host:, port:, **)
           ssh_driver = ObsDeploy::SSH.new(user: user, server: host, port: port)
-          zypper = ObsDeploy::Zypper.new
+          zypper = ObsDeploy::Zypper.new(dry_run: dry_run)
           ssh_driver.run(zypper.refresh)
         end
       end

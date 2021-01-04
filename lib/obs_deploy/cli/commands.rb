@@ -11,6 +11,7 @@ module ObsDeploy
       autoload :GetDeployedVersion, File.join(__dir__, 'commands/get_deployed_version.rb')
       autoload :Systemctl, File.join(__dir__, 'commands/systemctl.rb')
       autoload :GetPendingMigration, File.join(__dir__, 'commands/get_pending_migration.rb')
+      autoload :GetDiff, File.join(__dir__, 'commands/get_diff.rb')
 
       # register the commands and its command line
       register 'available-package', GetPackageVersion
@@ -20,6 +21,7 @@ module ObsDeploy
       register 'refresh-repositories', RefreshRepositories
       register 'systemctl', Systemctl
       register 'pending-migrations', GetPendingMigration
+      register 'check-diff', GetDiff
     end
   end
 end
