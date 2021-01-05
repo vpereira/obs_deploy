@@ -2,10 +2,11 @@
 
 module ObsDeploy
   class CheckDiff
-    def initialize(server: 'https://api.opensuse.org', product: 'SLE_12_SP4', project: 'OBS:Server:Unstable')
+    def initialize(server: 'https://api.opensuse.org', product: 'SLE_12_SP4', project: 'OBS:Server:Unstable', target_server: 'https://api.opensuse.org')
       @server = server
       @product = product
       @project = project
+      @target_server = target_server
     end
 
     def package_version
@@ -59,7 +60,7 @@ module ObsDeploy
     end
 
     def about_url
-      URI("#{@server}/about")
+      URI("#{@target_server}/about")
     end
   end
 end
