@@ -14,14 +14,14 @@ module ObsDeploy
       autoload :GetDiff, File.join(__dir__, 'commands/get_diff.rb')
 
       # register the commands and its command line
-      register 'available-package', GetPackageVersion
-      register 'deployed-version', GetDeployedVersion
+      register 'available-package', GetPackageVersion, aliases: ["ap"]
+      register 'deployed-version', GetDeployedVersion, aliases: ["dv"]
       register 'version', Version, aliases: ['v', '-v', '--version']
-      register 'deploy', Deploy
-      register 'refresh-repositories', RefreshRepositories
-      register 'systemctl', Systemctl
-      register 'pending-migrations', GetPendingMigration
-      register 'check-diff', GetDiff
+      register 'deploy', Deploy, aliases: ["dp"]
+      register 'refresh-repositories', RefreshRepositories, aliases: ["rr"]
+      register 'systemctl', Systemctl, aliases: ["sys"]
+      register 'pending-migrations', GetPendingMigration, aliases: ["pm"]
+      register 'check-diff', GetDiff, aliases: ["cd"]
     end
   end
 end
