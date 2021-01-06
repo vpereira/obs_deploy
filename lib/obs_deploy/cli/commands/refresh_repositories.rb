@@ -6,7 +6,6 @@ module ObsDeploy
       class RefreshRepositories < Dry::CLI::Command
         desc 'Refresh zypper repositories'
         option :user, type: :string, default: 'root', desc: 'User'
-        option :dry_run, type: :bool, default: true, desc: 'Dry run'
         option :host, type: :string, default: 'localhost', desc: 'Set the server address'
         option :port, type: :int, default: 22, desc: 'Set the server port'
 
