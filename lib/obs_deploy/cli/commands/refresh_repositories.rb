@@ -9,9 +9,9 @@ module ObsDeploy
         option :host, type: :string, default: 'localhost', desc: 'Set the server address'
         option :port, type: :int, default: 22, desc: 'Set the server port'
 
-        def call(user:, dry_run:, host:, port:, **)
+        def call(user:, host:, port:, **)
           ssh_driver = ObsDeploy::SSH.new(user: user, server: host, port: port)
-          zypper = ObsDeploy::Zypper.new(dry_run: dry_run)
+          zypper = ObsDeploy::Zypper.new
           ssh_driver.run(zypper.refresh)
         end
       end
