@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry'
 require 'tempfile'
 
 RSpec.describe ObsDeploy::ApacheSysconfig do

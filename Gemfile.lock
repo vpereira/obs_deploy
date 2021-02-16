@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    obs_deploy (0.3.3)
+    obs_deploy (0.3.5)
       cheetah
       dry-cli
       nokogiri
@@ -26,7 +26,7 @@ GEM
     jaro_winkler (1.5.4)
     method_source (1.0.0)
     mini_portile2 (2.5.0)
-    nokogiri (1.11.0)
+    nokogiri (1.11.1)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
     parallel (1.19.1)

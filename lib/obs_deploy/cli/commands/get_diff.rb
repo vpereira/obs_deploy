@@ -10,8 +10,13 @@ module ObsDeploy
         option :project, type: :string, default: 'OBS:Server:Unstable', desc: 'Project name'
         option :product, type: :string, default: 'SLE_12_SP4', desc: 'Product name'
         option :architecture, type: :string, default: 'x86_64', desc: 'Architecture'
+        option :ignore_certificate, aliases: ['k'], type: :bool, default: false, desc: 'Ignore invalid or self-signed SSL certificates'
 
-        def call(url:, product:, project:, **)
+        def call(url:, product:, project:, ignore_certificate:, **)
+          if ignore_certificate
+            OpenSSL::SSL.send(:remove_const, :VERIFY_PEER)
+            OpenSSL::SSL.const_set(:VERIFY_PEER, OpenSSL::SSL::VERIFY_NONE)
+          end
           puts "diff : #{ObsDeploy::CheckDiff.new(server: url, project: project, product: product).github_diff}"
         end
       end
