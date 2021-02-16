@@ -35,5 +35,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'webmock'
   spec.add_dependency 'cheetah'
   spec.add_dependency 'dry-cli'
+  spec.add_dependency 'git_diff_parser'
   spec.add_dependency 'nokogiri'
 end

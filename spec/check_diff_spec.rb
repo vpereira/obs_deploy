@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'spec_helper'
+
 RSpec.describe ObsDeploy::CheckDiff do
   let(:check_diff) { described_class.new }
   let(:http_response) { fixture_file }
@@ -84,6 +86,14 @@ RSpec.describe ObsDeploy::CheckDiff do
         let(:package_commit) { '554e943' }
         it { expect(check_diff).not_to have_migration }
       end
+
+      context 'migration file cited in the rubocop configuration' do
+        let(:fixture_file) { File.new('spec/fixtures/github_diff_false_positive_migration.txt') }
+        let(:running_commit) { '4987339b496' }
+        let(:package_commit) { '564a33f4aa9' }
+
+        it { expect(check_diff).not_to have_migration }
+      end
     end
 
     context 'no data is present' do
@@ -99,6 +109,21 @@ RSpec.describe ObsDeploy::CheckDiff do
   describe '#migrations' do
     subject { check_diff.migrations }
 
+    context 'no pending migration' do
+      let(:diff_url) { "https://github.com/openSUSE/open-build-service/compare/#{running_commit}...#{package_commit}.diff" }
+      let(:fixture_file) { File.new('spec/fixtures/github_diff_without_migration.txt') }
+      let(:running_commit) { 'bc7f6c0' }
+      let(:package_commit) { '554e943' }
+      before do
+        allow(check_diff).to receive(:obs_running_commit).and_return(running_commit)
+        allow(check_diff).to receive(:package_commit).and_return(package_commit)
+        stub_request(:get, diff_url).to_return(fixture_file)
+      end
+
+      it { expect(check_diff.github_diff).not_to be_empty }
+      it { expect(check_diff).not_to have_migration }
+    end
+
     context 'data is present' do
       let(:diff_url) { "https://github.com/openSUSE/open-build-service/compare/#{running_commit}...#{package_commit}.diff" }
       before do
@@ -113,12 +138,6 @@ RSpec.describe ObsDeploy::CheckDiff do
         let(:running_commit) { '52a3a8b' }
         let(:package_commit) { '2c565b0' }
         it { expect(subject.first).to include(migration_file) }
-      end
-      context 'no pending migration' do
-        let(:fixture_file) { File.new('spec/fixtures/github_diff_without_migration.txt') }
-        let(:running_commit) { 'bc7f6c0' }
-        let(:package_commit) { '554e943' }
-        it { expect(subject).to be_empty }
       end
     end
   end

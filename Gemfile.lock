@@ -4,6 +4,7 @@ PATH
     obs_deploy (0.3.5)
       cheetah
       dry-cli
+      git_diff_parser
       nokogiri
 
 GEM
@@ -16,12 +17,13 @@ GEM
     cheetah (0.5.2)
       abstract_method (~> 1.2)
     coderay (1.1.2)
-    concurrent-ruby (1.1.7)
+    concurrent-ruby (1.1.8)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
     diff-lcs (1.3)
     dry-cli (0.6.0)
       concurrent-ruby (~> 1.0)
+    git_diff_parser (3.2.0)
     hashdiff (1.0.1)
     jaro_winkler (1.5.4)
     method_source (1.0.0)

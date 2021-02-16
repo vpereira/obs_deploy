@@ -34,7 +34,7 @@ module ObsDeploy
     def has_migration?
       return true if github_diff.nil? || github_diff.empty?
 
-      github_diff.match?(%r{db/migrate})
+      GitDiffParser.parse(github_diff).files.any? { |f| f.match?(%r{db/migrate}) }
     end
 
     def has_data_migration?
