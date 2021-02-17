@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry'
-
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..', '..', 'lib')
 
 require 'obs_deploy'
