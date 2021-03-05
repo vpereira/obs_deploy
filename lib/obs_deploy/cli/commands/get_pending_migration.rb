@@ -16,8 +16,10 @@ module ObsDeploy
           migrations = ObsDeploy::CheckDiff.new(server: url).migrations
           if migrations.empty?
             puts 'No pending migrations'
+            exit(0)
           else
             puts migrations
+            exit(1)
           end
         end
       end
