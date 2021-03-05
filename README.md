@@ -27,25 +27,6 @@ zypper in  ruby2.6-rubygem-obs_deploy
 ## Usage
 
 
-
-### To deploy
-
-As default it will run in `dry-run` mode (no changes are made)
-
-#### dry-run:
-
-`obs_deploy deploy --user root --host localhost`
-
-or 
-
-`obs_deploy deploy --user root --host localhost --dry-run`
-
-### deploy
-
-`obs_deploy deploy --user root --host localhost --no-dry-run`
-
-
-
 ### To check which version is deployed
 
 `obs_deploy deployed-version [--host <server>]`

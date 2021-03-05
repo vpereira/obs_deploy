@@ -17,7 +17,6 @@ module ObsDeploy
       register 'available-package', GetPackageVersion, aliases: ['ap']
       register 'deployed-version', GetDeployedVersion, aliases: ['dv']
       register 'version', Version, aliases: ['v', '-v', '--version']
-      register 'deploy', Deploy, aliases: ['dp']
       register 'refresh-repositories', RefreshRepositories, aliases: ['rr']
       register 'systemctl', Systemctl, aliases: ['sys']
       register 'pending-migrations', GetPendingMigration, aliases: ['pm']
