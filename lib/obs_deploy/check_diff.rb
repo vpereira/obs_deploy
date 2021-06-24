@@ -40,19 +40,19 @@ module ObsDeploy
     def has_data_migration?
       return true if github_diff.nil? || github_diff.empty?
 
-      github_diff.match(%r{db/data})
+      GitDiffParser.parse(github_diff).files.any? { |f| f.match?(%r{db/data}) }
     end
 
     def data_migrations
       return [] unless has_data_migration?
 
-      github_diff.match(%r{db/data/.*\.rb}).to_a
+      GitDiffParser.parse(github_diff).files.select { |f| f =~ %r{db/data} }
     end
 
     def migrations
       return [] unless has_migration?
 
-      github_diff.match(%r{db/migrate/.*\.rb}).to_a
+      GitDiffParser.parse(github_diff).files.select { |f| f =~ %r{db/migrate} }
     end
 
     def package_url
