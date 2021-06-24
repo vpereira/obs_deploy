@@ -106,6 +106,25 @@ RSpec.describe ObsDeploy::CheckDiff do
     end
   end
 
+  describe '#data_migrations' do
+    subject { check_diff.data_migrations }
+
+    context 'no pending migration' do
+      let(:diff_url) { "https://github.com/openSUSE/open-build-service/compare/#{running_commit}...#{package_commit}.diff" }
+      let(:fixture_file) { File.new('spec/fixtures/github_diff_with_data_migration.txt') }
+      let(:running_commit) { 'bc7f6c0' }
+      let(:package_commit) { '554e943' }
+      before do
+        allow(check_diff).to receive(:obs_running_commit).and_return(running_commit)
+        allow(check_diff).to receive(:package_commit).and_return(package_commit)
+        stub_request(:get, diff_url).to_return(fixture_file)
+      end
+
+      it { expect(subject).not_to be_empty }
+      it { expect(subject).to include('src/api/db/data/20200424080753_generate_web_notifications.rb') }
+    end
+  end
+
   describe '#migrations' do
     subject { check_diff.migrations }
 
