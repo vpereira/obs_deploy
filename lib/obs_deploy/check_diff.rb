@@ -2,7 +2,7 @@
 
 module ObsDeploy
   class CheckDiff
-    def initialize(server: 'https://api.opensuse.org', product: 'SLE_12_SP4', project: 'OBS:Server:Unstable', target_server: 'https://api.opensuse.org')
+    def initialize(server: 'https://api.opensuse.org', product: 'SLE_15_SP3', project: 'OBS:Server:Unstable', target_server: 'https://api.opensuse.org')
       @server = server
       @product = product
       @project = project

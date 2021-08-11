@@ -11,13 +11,13 @@ RSpec.describe ObsDeploy::CheckDiff do
   describe '#package_url' do
     subject { check_diff.package_url.to_s }
     context 'default parameter' do
-      let(:url) { 'https://api.opensuse.org/public/build/OBS:Server:Unstable/SLE_12_SP4/x86_64/obs-server' }
+      let(:url) { 'https://api.opensuse.org/public/build/OBS:Server:Unstable/SLE_15_SP3/x86_64/obs-server' }
       it { expect(subject).to eq(url) }
     end
 
     context 'project = OBS:Server:2.10:Staging' do
-      let(:check_diff) { described_class.new(product: 'openSUSE_15.1', project: 'OBS:Server:2.10:Staging') }
-      let(:url) { 'https://api.opensuse.org/public/build/OBS:Server:2.10:Staging/openSUSE_15.1/x86_64/obs-server' }
+      let(:check_diff) { described_class.new(product: 'openSUSE_15.3', project: 'OBS:Server:2.10:Staging') }
+      let(:url) { 'https://api.opensuse.org/public/build/OBS:Server:2.10:Staging/openSUSE_15.3/x86_64/obs-server' }
       it { expect(subject).to eq(url) }
     end
   end
